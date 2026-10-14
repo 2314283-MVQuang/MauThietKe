@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Hàng neo của trang chủ (Trung): nằm trong navbar, chỉ chèn khi trang khai báo landingNav.
+     static/js/landing.js đánh dấu mục đang xem (.active + aria-current). -->
+<div th:fragment="section-nav" class="landing-nav">
+    <div class="container">
+        <ul class="landing-nav-list" aria-label="Các mục trên trang chủ">
+            <li><a href="#gioi-thieu">Giới thiệu</a></li>
+            <li><a href="#cach-dat">Cách đặt</a></li>
+            <li><a href="#signature">Signature</a></li>
+            <li><a href="#menu">Menu</a></li>
+            <li><a href="#faq">Hỏi đáp</a></li>
+            <li><a href="#lien-he">Liên hệ</a></li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

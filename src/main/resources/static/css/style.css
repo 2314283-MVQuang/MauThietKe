@@ -584,3 +584,107 @@ main { animation: page-in .45s cubic-bezier(.2, .8, .2, 1) both; }
 }
 .btn-google:hover, .btn-google:focus { background: var(--mint); border-color: var(--leaf); color: var(--ink); }
 .btn-google .bi-google { font-size: 1.1rem; color: #4285F4; }
+
+/* ===== LANDING (Trung) ===== */
+/* Trang chủ: hàng neo trong navbar, Vì sao chọn quán, Hỏi trợ lý, Hỏi đáp, Liên hệ, nút đặt món cố định trên điện thoại.
+   Chỉnh tương phản: chữ nhỏ trên nền màu được pha thêm --ink (color-mix) để đạt tối thiểu 4.5:1. */
+
+/* Hàng neo (fragments/landing.html) – dòng thứ 2 của navbar, cuộn ngang trên điện thoại */
+.home .navbar-ts { flex-wrap: wrap; } /* .navbar-expand-lg đặt nowrap từ 992px → hàng neo bị ép nằm cạnh menu chính */
+.landing-nav { width: 100%; margin-top: .5rem; border-top: 1px solid var(--mint-2); }
+.landing-nav-list { list-style: none; margin: 0; padding: .4rem 0 0; display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none; }
+.landing-nav-list::-webkit-scrollbar { display: none; }
+.landing-nav-list a {
+    display: inline-block; white-space: nowrap; padding: .3rem .85rem; border-radius: 999px;
+    color: var(--ink); font-weight: 600; font-size: .9rem; text-decoration: none;
+    transition: background-color .2s, color .2s;
+}
+.landing-nav-list a:hover { background: var(--mint-2); color: var(--leaf-dark); }
+.landing-nav-list a.active { background: var(--leaf); color: var(--ts-milk); }
+/* Hàng neo đã có Menu / Signature → ẩn 2 mục trùng ở hàng trên (chỉ trên trang chủ) */
+.home #mainNav .nav-item:has(> a[href$="/#menu"]),
+.home #mainNav .nav-item:has(> a[href$="/#signature"]) { display: none; }
+/* --landing-offset = chiều cao navbar, do landing.js đo */
+.home section[id] { scroll-margin-top: calc(var(--landing-offset, 110px) + 12px); }
+
+/* Vì sao chọn quán */
+.why-section { background: var(--ts-milk); }
+.why-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.why-card { background: var(--mint); border-radius: 24px; padding: 26px 22px; }
+.why-card h3 { font-size: 1.2rem; margin: .9rem 0 .4rem; }
+.why-card p { color: var(--ink-soft); margin: 0; }
+.why-icon {
+    width: 52px; height: 52px; border-radius: 16px; font-size: 1.45rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg); color: var(--accent);
+}
+
+/* Đặt món trong 3 bước: xen kẽ nền với các khối kề bên */
+.home .steps-section { background: var(--mint); }
+.home .step { background: var(--ts-milk); }
+.home .step .tag { color: color-mix(in srgb, var(--taro) 60%, var(--ink)); }
+
+/* Chữ nhỏ trên nền màu: giữ sắc màu, đủ tương phản */
+.home .sig-badge { color: color-mix(in srgb, var(--accent) 75%, var(--ink)); }
+.home .chip-sig { background: color-mix(in srgb, var(--berry) 70%, var(--ink)); }
+.home .cat-tab.active { background: color-mix(in srgb, var(--c) 70%, var(--ink)); color: var(--ts-milk); }
+.home .review-avatar { color: var(--ink); }
+
+/* Hỏi nhanh trợ lý (chỉ hiện khi đã có chatbox) */
+.ask-section { background: var(--ts-milk); padding-bottom: 0; }
+.ask-card {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px;
+    background: var(--taro-soft); border-radius: 28px; padding: 28px 32px;
+}
+.ask-title { font-weight: 800; font-size: 1.6rem; margin: 0 0 .25rem; }
+
+/* Câu hỏi thường gặp – accordion Bootstrap, đổi màu qua biến của Bootstrap */
+.faq-section { background: var(--ts-milk); }
+.faq {
+    --bs-accordion-border-color: var(--mint-2);
+    --bs-accordion-border-radius: 16px;
+    --bs-accordion-inner-border-radius: 15px;
+    --bs-accordion-btn-color: var(--ink);
+    --bs-accordion-active-color: var(--leaf-dark);
+    --bs-accordion-active-bg: var(--mint);
+    --bs-accordion-btn-focus-box-shadow: 0 0 0 3px color-mix(in srgb, var(--leaf) 35%, transparent);
+    --bs-accordion-btn-active-icon: var(--bs-accordion-btn-icon);
+}
+.faq .accordion-button { font-weight: 700; font-size: 1.05rem; }
+.faq .accordion-body { color: var(--ink-soft); }
+
+/* Giờ mở cửa, địa chỉ, liên hệ (dùng lại khối .visit) */
+.contact-section { padding-bottom: 0; }
+.contact-card { align-items: start; }
+.contact-card .muted { color: var(--mint); }
+.contact-head { font-size: 1.1rem; font-weight: 700; margin-bottom: .6rem; }
+.contact-indent { display: inline-block; margin-left: 1.45em; }
+.contact-link { color: var(--ts-milk); font-weight: 600; text-underline-offset: 3px; }
+.contact-link:hover, .contact-link:focus { color: var(--honey-soft); }
+.contact-todo { color: var(--mint); font-style: italic; border-bottom: 1px dashed currentColor; }
+
+/* Nút "Đặt món ngay" cố định – chỉ trên điện thoại */
+.landing-fab { display: none; }
+
+@media (max-width: 991.98px) {
+    .why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767.98px) {
+    .landing-fab {
+        display: inline-flex; align-items: center; gap: .5rem;
+        position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 1020;
+        max-width: calc(100% - 104px); /* chừa góc phải cho nút chatbox */
+        padding: .75rem 1.3rem; border-radius: 999px;
+        box-shadow: 0 12px 28px color-mix(in srgb, var(--ink) 25%, transparent);
+        transition: transform .3s cubic-bezier(.2, .8, .2, 1), opacity .3s, visibility .3s;
+    }
+    .landing-fab.is-hidden { opacity: 0; visibility: hidden; transform: translateY(24px); }
+    .home footer { padding-bottom: 88px !important; } /* nút cố định không che chữ cuối trang */
+}
+@media (max-width: 575.98px) {
+    .why-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .why-card { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; padding: 18px; }
+    .why-icon { grid-row: span 2; }
+    .why-card h3 { margin: 2px 0 .25rem; }
+    .ask-card { padding: 22px; }
+}
