@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Thống kê')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <h3 class="text-ts mb-3"><i class="bi bi-graph-up"></i> Tổng quan cửa hàng</h3>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3">
+                <div class="stat-label">Doanh thu hôm nay</div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(revenueToday, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3">
+                <div class="stat-label">Doanh thu tháng này</div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(revenueMonth, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3">
+                <div class="stat-label">Đơn chờ xác nhận</div>
+                <div class="stat-value" th:text="${pendingCount}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3">
+                <div class="stat-label">Đồ uống / Khách / Nhân viên</div>
+                <div class="stat-value" th:text="${productCount} + ' / ' + ${customerCount} + ' / ' + ${staffCount}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card p-3 mb-4">
+                <h6 class="text-ts">Doanh thu 7 ngày gần nhất <small class="text-muted">(đơn hoàn thành)</small></h6>
+                <div class="bar-chart mt-2">
+                    <div class="bar-row" th:each="d : ${days}">
+                        <span class="bar-label" th:text="${d.label()}">01/01</span>
+                        <div class="bar-track"><div class="bar-fill" th:style="'width:' + ${d.percent()} + '%'"></div></div>
+                        <span class="bar-value" th:text="${#numbers.formatDecimal(d.amount(), 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="d-flex justify-content-between align-items-center p-3 pb-0">
+                    <h6 class="text-ts mb-0">Đơn hàng mới nhất</h6>
+                    <a th:href="@{/staff/orders}" class="small text-ts">Xem tất cả</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 mt-2">
+                        <thead><tr><th>Mã</th><th>Khách</th><th class="text-end">Tổng</th><th>Trạng thái</th></tr></thead>
+                        <tbody>
+                        <tr th:each="o : ${recentOrders}">
+                            <td><a th:href="@{/orders/{id}(id=${o.id})}" class="text-ts" th:text="${o.orderCode}"></a></td>
+                            <td th:text="${o.customerName}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                            <td><span class="badge" th:classappend="'bg-' + ${o.status.badge}" th:text="${o.status.label}"></span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(recentOrders)}"><td colspan="4" class="text-muted">Chưa có đơn hàng.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card p-3 mb-4">
+                <h6 class="text-ts">Top đồ uống bán chạy</h6>
+                <ol class="mb-0 ps-3">
+                    <li th:each="b : ${bestSellers}" class="mb-1">
+                        <span th:text="${b.productName()}"></span>
+                        <small class="text-muted" th:text="'- ' + ${b.quantity()} + ' ly - ' + ${#numbers.formatDecimal(b.revenue(), 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
+                    </li>
+                </ol>
+                <p th:if="${#lists.isEmpty(bestSellers)}" class="text-muted mb-0">Chưa có dữ liệu.</p>
+            </div>
+
+            <div class="card p-3">
+                <h6 class="text-ts">Đơn hàng theo trạng thái</h6>
+                <ul class="list-unstyled mb-0">
+                    <li th:each="e : ${statusCounts}" class="d-flex justify-content-between mb-1">
+                        <span class="badge" th:classappend="'bg-' + ${e.key.badge}" th:text="${e.key.label}"></span>
+                        <strong th:text="${e.value}">0</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

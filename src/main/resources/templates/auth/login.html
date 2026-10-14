@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Đăng nhập')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div class="card auth-card p-4">
+        <h3 class="text-ts text-center mb-3">🧋 Đăng nhập</h3>
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <th:block th:with="err=${param.error != null ? param.error[0] : null}">
+            <div th:if="${err == ''}" class="alert alert-danger">Sai tên đăng nhập / mật khẩu, hoặc tài khoản đã bị khoá.</div>
+            <div th:if="${err == 'google'}" class="alert alert-danger">Đăng nhập Google không thành công. Vui lòng thử lại.</div>
+            <div th:if="${err == 'locked'}" class="alert alert-danger">Tài khoản của bạn đã bị khoá. Vui lòng liên hệ quán.</div>
+        </th:block>
+        <div th:if="${param.logout}" class="alert alert-info">Bạn đã đăng xuất.</div>
+        <div th:if="${param.google}" class="alert alert-warning small">
+            Đăng nhập Google chưa được bật trên máy chủ này: cần điền <code>app.google.client-id</code> và
+            <code>app.google.client-secret</code> trong <code>application.properties</code> (xem README).
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="mb-3">
+                <label class="form-label" for="username">Tên đăng nhập</label>
+                <input class="form-control" id="username" name="username" required autofocus>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password">Mật khẩu</label>
+                <input class="form-control" id="password" name="password" type="password" required>
+            </div>
+            <button class="btn btn-ts w-100" type="submit">Đăng nhập</button>
+        </form>
+
+        <div th:replace="~{fragments/auth :: google-button}"></div>
+
+        <p class="text-center mt-3 mb-0">Chưa có tài khoản? <a th:href="@{/register}" class="text-ts">Đăng ký</a></p>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

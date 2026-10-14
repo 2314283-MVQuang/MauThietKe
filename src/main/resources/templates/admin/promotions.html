@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Khuyến mãi')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <h3 class="text-ts mb-1"><i class="bi bi-ticket-perforated"></i> Mã khuyến mãi</h3>
+    <p class="text-muted small">Mỗi <strong>loại</strong> khuyến mãi ứng với một lớp <code>DiscountStrategy</code>
+        (Strategy Pattern): PHAN_TRAM → <code>PercentageDiscountStrategy</code>,
+        SO_TIEN → <code>FixedAmountDiscountStrategy</code>, MUA_X_TANG_1 → <code>BuyXGetOneFreeStrategy</code>.</p>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card p-3">
+                <h6 th:text="${form.id == null} ? 'Thêm mã' : 'Sửa mã'">Thêm</h6>
+                <form th:action="@{/admin/promotions/save}" th:object="${form}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <div class="mb-2">
+                        <label class="form-label">Mã *</label>
+                        <input th:field="*{code}" class="form-control text-uppercase" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Tên chương trình *</label>
+                        <input th:field="*{name}" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Loại (chiến lược)</label>
+                        <select th:field="*{type}" class="form-select" id="promoType">
+                            <option th:each="t : ${types}" th:value="${t}" th:text="${t.label}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-2 type-value">
+                        <label class="form-label">Giá trị giảm (% hoặc số tiền)</label>
+                        <input th:field="*{value}" type="number" min="0" step="any" class="form-control">
+                    </div>
+                    <div class="mb-2 type-percent">
+                        <label class="form-label">Giảm tối đa (đ)</label>
+                        <input th:field="*{maxDiscount}" type="number" min="0" step="1000" class="form-control">
+                    </div>
+                    <div class="mb-2 type-buy">
+                        <label class="form-label">Số ly phải mua (X)</label>
+                        <input th:field="*{buyQuantity}" type="number" min="1" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Đơn tối thiểu (đ)</label>
+                        <input th:field="*{minOrderAmount}" type="number" min="0" step="1000" class="form-control">
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Từ ngày</label>
+                            <input th:field="*{startDate}" type="date" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Đến ngày</label>
+                            <input th:field="*{endDate}" type="date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input th:field="*{active}" type="checkbox" class="form-check-input">
+                        <label class="form-check-label" th:for="${#ids.prev('active')}">Đang hoạt động</label>
+                    </div>
+                    <button class="btn btn-ts">Lưu</button>
+                    <a th:if="${form.id != null}" th:href="@{/admin/promotions}" class="btn btn-link">Huỷ sửa</a>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead><tr><th>Mã</th><th>Chiến lược áp dụng</th><th>Thời hạn</th><th>Trạng thái</th><th style="width:150px"></th></tr></thead>
+                        <tbody>
+                        <tr th:each="p : ${promotions}">
+                            <td>
+                                <div class="fw-semibold" th:text="${p.code}"></div>
+                                <small class="text-muted" th:text="${p.name}"></small>
+                            </td>
+                            <td>
+                                <div th:text="${strategyText.get(p.id)}"></div>
+                                <small class="text-muted" th:if="${p.minOrderAmount != null and p.minOrderAmount.signum() > 0}"
+                                       th:text="'Đơn từ ' + ${#numbers.formatDecimal(p.minOrderAmount, 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
+                            </td>
+                            <td class="small">
+                                <span th:text="${p.startDate != null} ? ${#temporals.format(p.startDate, 'dd/MM/yyyy')} : '...'"></span>
+                                →
+                                <span th:text="${p.endDate != null} ? ${#temporals.format(p.endDate, 'dd/MM/yyyy')} : '...'"></span>
+                            </td>
+                            <td>
+                                <span th:if="${p.usableToday}" class="badge bg-success">Đang chạy</span>
+                                <span th:if="${!p.usableToday and p.active}" class="badge bg-warning text-dark">Ngoài thời hạn</span>
+                                <span th:unless="${p.active}" class="badge bg-secondary">Tạm ngưng</span>
+                            </td>
+                            <td class="d-flex gap-1">
+                                <a th:href="@{/admin/promotions(edit=${p.id})}" class="btn btn-sm btn-outline-ts"><i class="bi bi-pencil"></i></a>
+                                <form th:action="@{/admin/promotions/{id}/toggle(id=${p.id})}" method="post">
+                                    <button class="btn btn-sm btn-outline-secondary" title="Bật/tắt"><i class="bi bi-power"></i></button>
+                                </form>
+                                <form th:action="@{/admin/promotions/{id}/delete(id=${p.id})}" method="post"
+                                      onsubmit="return confirm('Xoá mã này?')">
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script>
+    (function () {
+        const type = document.getElementById('promoType');
+        function show(cls, visible) {
+            document.querySelectorAll('.' + cls).forEach(el => el.style.display = visible ? '' : 'none');
+        }
+        function toggle() {
+            show('type-value', type.value !== 'MUA_X_TANG_1');
+            show('type-percent', type.value === 'PHAN_TRAM');
+            show('type-buy', type.value === 'MUA_X_TANG_1');
+        }
+        type.addEventListener('change', toggle);
+        toggle();
+    })();
+</script>
+</body>
+</html>

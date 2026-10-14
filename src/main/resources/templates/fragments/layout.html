@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- ===================== HEAD ===================== -->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' | Trà Sữa DLU'">Trà Sữa DLU</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- ===================== NAVBAR ===================== -->
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light navbar-ts">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">🧋 Trà Sữa DLU</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/} + '#menu'"><i class="bi bi-cup-straw"></i> Menu</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/} + '#signature'"><i class="bi bi-stars"></i> Signature</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/menu-board}"><i class="bi bi-journal-richtext"></i> Menu in</a></li>
+
+                <li class="nav-item" sec:authorize="hasRole('CUSTOMER')">
+                    <a class="nav-link" th:href="@{/orders/my}"><i class="bi bi-receipt"></i> Đơn của tôi</a>
+                </li>
+
+                <li class="nav-item" sec:authorize="hasAnyRole('STAFF','ADMIN')">
+                    <a class="nav-link" th:href="@{/staff/orders}"><i class="bi bi-list-check"></i> Xử lý đơn</a>
+                </li>
+
+                <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-gear"></i> Quản trị
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" th:href="@{/admin}"><i class="bi bi-graph-up"></i> Thống kê</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/products}"><i class="bi bi-cup-hot"></i> Đồ uống</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/categories}"><i class="bi bi-tags"></i> Danh mục</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/toppings}"><i class="bi bi-circle"></i> Topping</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/promotions}"><i class="bi bi-ticket-perforated"></i> Khuyến mãi</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/reviews}"><i class="bi bi-star"></i> Đánh giá</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/users}"><i class="bi bi-people"></i> Tài khoản</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/cart}">
+                        <i class="bi bi-bag"></i>
+                        <span sec:authorize="hasRole('CUSTOMER')">Giỏ hàng</span>
+                        <span sec:authorize="!hasRole('CUSTOMER')">Đơn tại quầy</span>
+                        <span class="badge rounded-pill cart-badge" style="background: var(--peach); color: var(--ink)"
+                              th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span>
+                    </a>
+                </li>
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> <span sec:authentication="name">user</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person"></i> Hồ sơ</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="px-3">
+                                <button class="btn btn-link p-0 text-danger text-decoration-none" type="submit">
+                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" th:href="@{/login}"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" th:href="@{/register}">Đăng ký</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ===================== THÔNG BÁO ===================== -->
+<div th:fragment="alerts" class="toast-stack" aria-live="polite">
+    <div th:if="${success}" class="ts-toast ts-toast-success" role="status" data-autohide="4500">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="ts-toast-close" aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div th:if="${error}" class="ts-toast ts-toast-error" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="ts-toast-close" aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+    </div>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<div th:fragment="footer">
+    <footer class="pt-5 pb-4 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="display-font fw-bold fs-3 text-white">🧋 Trà Sữa DLU</div>
+                    <p class="mb-0" style="max-width: 36ch">Trà sữa, trà trái cây và cà phê pha mới mỗi ly, nguyên liệu tươi từ Đà Lạt.</p>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="fw-semibold text-white mb-2">Ghé quán</div>
+                    <div>01 Phù Đổng Thiên Vương<br>Phường 8, Đà Lạt</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="fw-semibold text-white mb-2">Giờ mở cửa</div>
+                    <div>7:00 – 22:00 mỗi ngày<br>Giao hàng trong bán kính 5 km</div>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,.18)">
+            <div class="d-flex flex-wrap justify-content-between small gap-2">
+                <span>Đồ án môn Mẫu thiết kế – Builder · Decorator · Strategy</span>
+                <span>Spring Boot + PostgreSQL</span>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/motion.js}"></script>
+</div>
+
+</body>
+</html>

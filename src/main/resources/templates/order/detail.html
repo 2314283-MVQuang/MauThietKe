@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Đơn ' + ${order.orderCode})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4" th:with="next=${order.status.next(order.orderType)}">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+            <h3 class="text-ts mb-0">Đơn hàng <span th:text="${order.orderCode}">TS...</span></h3>
+            <small class="text-muted" th:text="'Đặt lúc ' + ${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
+        </div>
+        <div class="d-flex gap-2 no-print">
+            <span class="badge fs-6" th:classappend="'bg-' + ${order.status.badge}" th:text="${order.status.label}">Trạng thái</span>
+            <span class="badge fs-6" th:classappend="'bg-' + ${order.paymentStatus.badge}" th:text="${order.paymentStatus.label}"></span>
+            <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> In hoá đơn</button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead><tr><th>Món</th><th class="text-end">Đơn giá</th><th class="text-center">SL</th><th class="text-end">Thành tiền</th></tr></thead>
+                        <tbody>
+                        <tr th:each="item : ${order.items}">
+                            <td>
+                                <div class="fw-semibold" th:text="${item.productName}"></div>
+                                <small class="text-muted" th:text="${item.description}"></small>
+                                <div th:if="${item.note}"><small class="fst-italic" th:text="'Ghi chú: ' + ${item.note}"></small></div>
+                                <a sec:authorize="hasRole('CUSTOMER')"
+                                   th:if="${order.status.name() == 'HOAN_THANH' and item.productId != null}"
+                                   th:href="@{/products/{id}(id=${item.productId})} + '#reviews'"
+                                   class="btn btn-sm btn-outline-warning mt-1 no-print">
+                                    <i class="bi bi-star"></i>
+                                    <span th:text="${reviewedIds.contains(item.productId)} ? 'Sửa đánh giá' : 'Đánh giá món'">Đánh giá</span>
+                                </a>
+                            </td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(item.unitPrice, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                            <td class="text-center" th:text="${item.quantity}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(item.lineTotal, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr><td colspan="3" class="text-end">Tạm tính</td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(order.subtotal, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td></tr>
+                        <tr th:if="${order.discountAmount.signum() > 0}">
+                            <td colspan="3" class="text-end text-success">
+                                Khuyến mãi <strong th:text="${order.promotionCode}"></strong>
+                                <small th:text="'(' + ${order.discountDescription} + ')'"></small>
+                            </td>
+                            <td class="text-end text-success" th:text="'-' + ${#numbers.formatDecimal(order.discountAmount, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td></tr>
+                        <tr><td colspan="3" class="text-end fw-bold">Tổng cộng</td>
+                            <td class="text-end fw-bold price fs-5" th:text="${#numbers.formatDecimal(order.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card p-3 mb-3">
+                <h6 class="text-ts">Thông tin nhận hàng</h6>
+                <div><i class="bi bi-person"></i> <span th:text="${order.customerName}"></span></div>
+                <div th:if="${order.phone}"><i class="bi bi-telephone"></i> <span th:text="${order.phone}"></span></div>
+                <div><i class="bi bi-shop"></i> <span th:text="${order.orderType.label}"></span></div>
+                <div th:if="${order.deliveryAddress}"><i class="bi bi-geo-alt"></i> <span th:text="${order.deliveryAddress}"></span></div>
+                <div th:if="${order.note}"><i class="bi bi-chat-left-text"></i> <span th:text="${order.note}"></span></div>
+                <div th:if="${order.staff}" class="text-muted small mt-1">Nhân viên tạo đơn: <span th:text="${order.staff.fullName}"></span></div>
+            </div>
+
+            <div class="card p-3 mb-3">
+                <h6 class="text-ts">Thanh toán <span class="badge bg-light text-ts">Strategy</span></h6>
+                <div th:text="${order.paymentMethod.label}"></div>
+                <small class="text-muted" th:text="${order.paymentInfo}"></small>
+                <div th:if="${paymentQr != null and order.paymentStatus.name() == 'CHUA_THANH_TOAN' and order.status.name() != 'DA_HUY'}"
+                     class="text-center mt-2">
+                    <img th:src="@{${paymentQr}}" alt="Mã QR thanh toán" class="img-fluid rounded-3 border" style="max-height:360px">
+                    <div class="small mt-1">
+                        Số tiền: <strong class="price" th:text="${#numbers.formatDecimal(order.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong><br>
+                        Nội dung: <strong th:text="${order.orderCode}"></strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khách hàng: huỷ đơn khi quán chưa xác nhận -->
+            <div sec:authorize="hasRole('CUSTOMER')" class="no-print">
+                <form th:if="${order.cancellableByCustomer}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post"
+                      onsubmit="return confirm('Bạn chắc chắn muốn huỷ đơn?')">
+                    <button class="btn btn-outline-danger w-100"><i class="bi bi-x-circle"></i> Huỷ đơn</button>
+                </form>
+                <a th:href="@{/orders/my}" class="btn btn-link text-ts w-100">Về danh sách đơn</a>
+            </div>
+
+            <!-- Nhân viên / quản lý: xử lý đơn -->
+            <div sec:authorize="hasAnyRole('STAFF','ADMIN')" class="card p-3 no-print">
+                <h6 class="text-ts">Xử lý đơn</h6>
+                <form th:if="${next != null}" th:action="@{/staff/orders/{id}/next(id=${order.id})}" method="post" class="mb-2">
+                    <input type="hidden" name="back" value="detail">
+                    <button class="btn btn-ts w-100">
+                        <i class="bi bi-arrow-right-circle"></i> Chuyển sang: <span th:text="${next.label}"></span>
+                    </button>
+                </form>
+                <form th:if="${order.paymentStatus.name() == 'CHUA_THANH_TOAN' and order.status.name() != 'DA_HUY'}"
+                      th:action="@{/staff/orders/{id}/paid(id=${order.id})}" method="post" class="mb-2">
+                    <input type="hidden" name="back" value="detail">
+                    <button class="btn btn-outline-success w-100"><i class="bi bi-cash-coin"></i> Xác nhận đã thanh toán</button>
+                </form>
+                <form th:unless="${order.status.finished}" th:action="@{/staff/orders/{id}/cancel(id=${order.id})}" method="post"
+                      onsubmit="return confirm('Huỷ đơn này?')">
+                    <input type="hidden" name="back" value="detail">
+                    <button class="btn btn-outline-danger w-100"><i class="bi bi-x-circle"></i> Huỷ đơn</button>
+                </form>
+                <a th:href="@{/staff/orders}" class="btn btn-link text-ts w-100 mt-1">Về danh sách đơn</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

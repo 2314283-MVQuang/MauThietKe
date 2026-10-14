@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Hiển thị sao theo điểm trung bình, hỗ trợ nửa sao.
+  Dùng: <span th:replace="~{fragments/stars :: stars(${p.ratingAvg}, ${p.ratingCount})}"></span>
+-->
+<span th:fragment="stars(avg, count)" class="stars" th:title="${count > 0} ? ${avg} + '/5 từ ' + ${count} + ' đánh giá' : 'Chưa có đánh giá'">
+    <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+        <i th:if="${count > 0 and avg >= i - 0.25}" class="bi bi-star-fill"></i>
+        <i th:if="${count > 0 and avg < i - 0.25 and avg >= i - 0.75}" class="bi bi-star-half"></i>
+        <i th:if="${count == 0 or avg < i - 0.75}" class="bi bi-star"></i>
+    </th:block>
+    <span class="stars-text" th:if="${count > 0}">
+        <strong th:text="${#numbers.formatDecimal(avg, 1, 'POINT', 1, 'COMMA')}">4.5</strong>
+        <span class="text-muted" th:text="'(' + ${count} + ')'">(12)</span>
+    </span>
+    <span class="stars-text text-muted" th:unless="${count > 0}">Chưa có đánh giá</span>
+</span>
+
+<!-- Chỉ các ngôi sao (có nửa sao), không kèm chữ -->
+<span th:fragment="icons(avg)" class="stars" th:title="${avg} + '/5'">
+    <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+        <i th:if="${avg >= i - 0.25}" class="bi bi-star-fill"></i>
+        <i th:if="${avg < i - 0.25 and avg >= i - 0.75}" class="bi bi-star-half"></i>
+        <i th:if="${avg < i - 0.75}" class="bi bi-star"></i>
+    </th:block>
+</span>
+
+<!-- Sao cố định (số nguyên) cho từng nhận xét -->
+<span th:fragment="fixed(rating)" class="stars" th:title="${rating} + '/5'">
+    <i th:each="i : ${#numbers.sequence(1, 5)}" class="bi" th:classappend="${i <= rating} ? 'bi-star-fill' : 'bi-star'"></i>
+</span>
+
+</body>
+</html>

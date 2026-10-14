@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Nút đăng nhập Google (dùng chung cho trang đăng nhập & đăng ký) -->
+<th:block th:fragment="google-button">
+    <div class="auth-divider"><span>hoặc</span></div>
+    <a class="btn btn-google w-100" th:href="${googleEnabled} ? @{/oauth2/authorization/google} : @{/login(google='off')}">
+        <i class="bi bi-google"></i> Tiếp tục với Google
+    </a>
+</th:block>
+
+
+</body>
+</html>

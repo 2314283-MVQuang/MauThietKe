@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${product.name})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <a th:href="@{/} + '#menu'" class="text-ts text-decoration-none fw-semibold"><i class="bi bi-arrow-left"></i> Quay lại menu</a>
+
+    <!-- ================= GIỚI THIỆU MÓN ================= -->
+    <section class="row g-4 align-items-center mt-1 mb-2">
+        <div class="col-md-5">
+            <div class="photo-frame mx-auto" style="aspect-ratio: 1 / 1; max-width: 440px; border-radius: 28px">
+                <img th:if="${product.imageUrl}" th:src="${product.imageUrl}" th:alt="${product.name}"
+                     th:style="'view-transition-name: drink-' + ${product.id}">
+                <div th:unless="${product.imageUrl}" class="w-100 h-100 d-flex align-items-center justify-content-center" style="font-size: 96px">🧋</div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                <span class="badge rounded-pill text-bg-light" th:text="${product.category.name}">Trà sữa</span>
+                <span class="badge rounded-pill" th:if="${product.signature}" style="background: var(--berry)"><i class="bi bi-stars"></i> Signature</span>
+            </div>
+            <h1 class="display-font fw-bold mb-1" style="font-size: clamp(2rem, 4.4vw, 3rem); line-height: 1.05" th:text="${product.name}">Tên món</h1>
+            <a href="#reviews" class="text-decoration-none d-inline-block mb-2">
+                <span th:replace="~{fragments/stars :: stars(${product.ratingAvg}, ${product.ratingCount})}"></span>
+            </a>
+            <p class="intro-tagline mb-2" th:if="${product.tagline}" th:text="${product.tagline}">Câu giới thiệu</p>
+            <p class="mb-3" th:text="${product.story != null} ? ${product.story} : ${product.description}">Câu chuyện</p>
+
+            <div class="intro-card" th:if="${product.hasIntro()}" th:classappend="'tone-' + ${product.tone}">
+                <div class="row g-3">
+                    <div class="col-sm-6" th:unless="${#lists.isEmpty(product.ingredientList)}">
+                        <div class="fw-semibold mb-2">Thành phần</div>
+                        <span class="ingredient-chip" th:each="ing : ${product.ingredientList}" th:text="${ing}">Trà đen</span>
+                    </div>
+                    <div class="col-sm-6" th:if="${product.tasteSweet + product.tasteStrength + product.tasteCreamy > 0}">
+                        <div class="fw-semibold mb-2">Hương vị</div>
+                        <div class="taste mb-0">
+                            <span>Độ ngọt</span><span class="dots"><i th:each="i : ${#numbers.sequence(1,5)}" th:classappend="${i <= product.tasteSweet} ? 'on'"></i></span>
+                            <span>Độ đậm</span><span class="dots"><i th:each="i : ${#numbers.sequence(1,5)}" th:classappend="${i <= product.tasteStrength} ? 'on'"></i></span>
+                            <span>Độ béo</span><span class="dots"><i th:each="i : ${#numbers.sequence(1,5)}" th:classappend="${i <= product.tasteCreamy} ? 'on'"></i></span>
+                        </div>
+                    </div>
+                    <div class="col-12" th:if="${product.suggestion}">
+                        <div class="suggest-box"><i class="bi bi-lightbulb-fill"></i> <strong>Quán gợi ý:</strong> <span th:text="${product.suggestion}"></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+                <div class="display-font fw-bold" style="font-size: 1.8rem; color: var(--leaf)"
+                     th:text="${#numbers.formatDecimal(product.priceM, 1, 'POINT', 0, 'COMMA')} + 'đ'">25.000đ</div>
+                <span class="text-muted" th:text="'Size L ' + ${#numbers.formatDecimal(product.priceL, 1, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                <a href="#customize" class="btn btn-ts btn-round px-4 ms-auto"><i class="bi bi-sliders"></i> Chọn size &amp; topping</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-4 mt-1" id="customize">
+        <!-- ================= FORM TUỲ CHỈNH LY NƯỚC ================= -->
+        <div class="col-lg-7">
+            <div class="card p-4">
+                <h2 class="h4 text-ts mb-3">Tuỳ chỉnh ly của bạn</h2>
+                <div th:unless="${product.available}" class="alert alert-warning">Món này đang tạm hết.</div>
+
+                <form id="drinkForm" th:action="@{/cart/add}" method="post"
+                      th:attr="data-api=@{/api/price-preview}">
+                    <input type="hidden" name="productId" th:value="${product.id}">
+
+                    <h6 class="mt-3">Chọn size</h6>
+                    <div class="btn-group" role="group">
+                        <th:block th:each="s, st : ${sizes}">
+                            <input type="radio" class="btn-check" name="size" th:id="'size' + ${s}" th:value="${s}" th:checked="${st.first}">
+                            <label class="btn btn-outline-ts" th:for="'size' + ${s}">
+                                <span th:text="${s.label}">Size</span>
+                                <small th:text="'(' + ${#numbers.formatDecimal(s.name() == 'M' ? product.priceM : product.priceL, 1, 'POINT', 0, 'COMMA')} + 'đ)'"></small>
+                            </label>
+                        </th:block>
+                    </div>
+
+                    <h6 class="mt-4">Mức đường</h6>
+                    <div class="btn-group flex-wrap" role="group">
+                        <th:block th:each="lv : ${levels}">
+                            <input type="radio" class="btn-check" name="sugar" th:id="'sugar' + ${lv}" th:value="${lv}" th:checked="${lv == 70}">
+                            <label class="btn btn-outline-secondary btn-sm" th:for="'sugar' + ${lv}" th:text="${lv} + '%'">70%</label>
+                        </th:block>
+                    </div>
+
+                    <h6 class="mt-4">Mức đá</h6>
+                    <div class="btn-group flex-wrap" role="group">
+                        <th:block th:each="lv : ${levels}">
+                            <input type="radio" class="btn-check" name="ice" th:id="'ice' + ${lv}" th:value="${lv}" th:checked="${lv == 70}">
+                            <label class="btn btn-outline-secondary btn-sm" th:for="'ice' + ${lv}" th:text="${lv} + '%'">70%</label>
+                        </th:block>
+                    </div>
+
+                    <h6 class="mt-4">Topping <small class="text-muted">(tối đa 5)</small></h6>
+                    <div class="row">
+                        <div class="col-sm-6" th:each="t : ${toppings}">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="toppingIds"
+                                       th:id="'top' + ${t.id}" th:value="${t.id}">
+                                <label class="form-check-label" th:for="'top' + ${t.id}">
+                                    <span th:text="${t.name}">Topping</span>
+                                    <small class="text-muted" th:text="'+' + ${#numbers.formatDecimal(t.price, 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-sm-4">
+                            <label class="form-label" for="quantity">Số lượng</label>
+                            <input class="form-control" type="number" id="quantity" name="quantity" value="1" min="1" max="50">
+                        </div>
+                        <div class="col-sm-8">
+                            <label class="form-label" for="note">Ghi chú</label>
+                            <input class="form-control" type="text" id="note" name="note" maxlength="200" placeholder="VD: không lấy ống hút">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button sec:authorize="isAuthenticated()" type="submit" class="btn btn-ts btn-lg"
+                                th:disabled="${!product.available}">
+                            <i class="bi bi-bag-plus"></i> Thêm vào giỏ
+                        </button>
+                        <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-ts btn-lg">
+                            Đăng nhập để đặt món
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================= XEM TRƯỚC GIÁ (DECORATOR) ================= -->
+        <div class="col-lg-5">
+            <div class="card p-4 position-sticky" style="top: 1rem">
+                <h5 class="text-ts">Tạm tính</h5>
+                <p class="mb-1 small text-muted">Mô tả ly nước (do chuỗi Decorator sinh ra):</p>
+                <p id="pvDescription" class="fw-semibold">...</p>
+
+                <h6 class="mt-2">Cách tính giá từng lớp <span class="badge bg-light text-ts">Decorator Pattern</span></h6>
+                <ul id="pvSteps" class="decorator-chain list-unstyled mb-3"></ul>
+
+                <div class="d-flex justify-content-between"><span>Đơn giá</span><strong id="pvUnit">0đ</strong></div>
+                <div class="d-flex justify-content-between fs-5"><span>Thành tiền</span><strong class="price" id="pvTotal">0đ</strong></div>
+                <div id="pvError" class="alert alert-warning mt-3 d-none"></div>
+            </div>
+        </div>
+    </div>
+    <!-- ===================== ĐÁNH GIÁ & NHẬN XÉT ===================== -->
+    <div class="card p-4 mt-4" id="reviews">
+        <h4 class="text-ts mb-3"><i class="bi bi-star"></i> Đánh giá &amp; nhận xét</h4>
+        <div class="row g-4">
+            <!-- Tổng quan -->
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rating-big" th:text="${product.ratingCount > 0} ? ${#numbers.formatDecimal(product.ratingAvg, 1, 'POINT', 1, 'COMMA')} : '–'">4.5</div>
+                    <div>
+                        <span th:replace="~{fragments/stars :: icons(${product.ratingAvg})}"></span>
+                        <div class="small text-muted" th:text="${product.ratingCount} + ' đánh giá'">12 đánh giá</div>
+                    </div>
+                </div>
+                <div class="rating-bars">
+                    <div class="d-flex align-items-center gap-2 mb-1 small" th:each="b : ${starBars}">
+                        <span style="width:28px" th:text="${b.stars()} + '★'">5★</span>
+                        <div class="bar-track"><div class="bar-fill" th:style="'width:' + ${b.percent()} + '%'"></div></div>
+                        <span class="text-muted" style="width:28px; text-align:right" th:text="${b.count()}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form đánh giá + danh sách -->
+            <div class="col-md-8">
+                <!-- Khách đủ điều kiện: viết / sửa đánh giá -->
+                <div th:if="${canReview}" class="border rounded-3 p-3 mb-3" style="background: var(--ts-milk)">
+                    <h6 class="mb-2" th:text="${myReview != null} ? 'Đánh giá của bạn (bấm để sửa)' : 'Bạn thấy món này thế nào?'">Đánh giá</h6>
+                    <form th:action="@{/reviews}" method="post">
+                        <input type="hidden" name="productId" th:value="${product.id}">
+                        <div class="star-picker mb-2">
+                            <th:block th:each="s : ${#numbers.sequence(5, 1, -1)}">
+                                <input type="radio" name="rating" th:id="'star' + ${s}" th:value="${s}"
+                                       th:checked="${myReview != null and myReview.rating == s}" required>
+                                <label th:for="'star' + ${s}" th:title="${s} + ' sao'"><i class="bi bi-star-fill"></i></label>
+                            </th:block>
+                        </div>
+                        <textarea name="comment" class="form-control mb-2" rows="3" maxlength="1000"
+                                  placeholder="Chia sẻ cảm nhận về vị, độ ngọt, topping... (không bắt buộc)"
+                                  th:text="${myReview != null} ? ${myReview.comment} : ''"></textarea>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-ts">
+                                <i class="bi bi-send"></i> <span th:text="${myReview != null} ? 'Cập nhật' : 'Gửi đánh giá'">Gửi</span>
+                            </button>
+                        </div>
+                    </form>
+                    <form th:if="${myReview != null}" th:action="@{/reviews/delete}" method="post" class="mt-2"
+                          onsubmit="return confirm('Xoá đánh giá của bạn?')">
+                        <input type="hidden" name="productId" th:value="${product.id}">
+                        <button class="btn btn-link btn-sm text-danger p-0"><i class="bi bi-trash"></i> Xoá đánh giá</button>
+                    </form>
+                </div>
+                <div th:if="${isCustomer and !canReview}" class="alert alert-light small">
+                    <i class="bi bi-info-circle"></i> Bạn có thể đánh giá món này sau khi nhận đơn hàng có món này (đơn đã hoàn thành).
+                </div>
+                <div th:if="${!isCustomer}" class="alert alert-light small" sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}" class="text-ts">Đăng nhập</a> bằng tài khoản khách hàng để đánh giá món đã mua.
+                </div>
+
+                <!-- Danh sách nhận xét -->
+                <p th:if="${#lists.isEmpty(reviews)}" class="text-muted">Chưa có nhận xét nào. Hãy là người đầu tiên!</p>
+                <div class="review-item d-flex gap-3" th:each="r : ${reviews}">
+                    <span class="review-avatar" th:text="${#strings.substring(r.user.fullName, 0, 1)}">T</span>
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                            <strong th:text="${r.user.fullName}">Tên khách</strong>
+                            <small class="text-muted">
+                                <span th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy')}"></span>
+                                <span th:if="${r.edited}"> · đã chỉnh sửa</span>
+                            </small>
+                        </div>
+                        <span th:replace="~{fragments/stars :: fixed(${r.rating})}"></span>
+                        <span class="badge bg-success-subtle text-success ms-1"><i class="bi bi-patch-check"></i> Đã mua hàng</span>
+                        <p class="mb-0 mt-1" th:if="${r.comment}" th:text="${r.comment}">Nhận xét</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script>
+    (function () {
+        const form = document.getElementById('drinkForm');
+        const api = form.dataset.api;
+        const money = v => Number(v || 0).toLocaleString('vi-VN') + 'đ';
+
+        function refresh() {
+            const params = new URLSearchParams();
+            new FormData(form).forEach((value, key) => {
+                if (key !== '_csrf' && key !== 'note') params.append(key, value);
+            });
+            fetch(api + '?' + params.toString())
+                .then(r => r.json())
+                .then(data => {
+                    const err = document.getElementById('pvError');
+                    if (!data.ok) {
+                        err.textContent = data.error;
+                        err.classList.remove('d-none');
+                        return;
+                    }
+                    err.classList.add('d-none');
+                    document.getElementById('pvDescription').textContent = data.description;
+                    document.getElementById('pvUnit').textContent = money(data.unitPrice);
+                    document.getElementById('pvTotal').textContent = money(data.lineTotal);
+                    const ul = document.getElementById('pvSteps');
+                    ul.innerHTML = '';
+                    data.steps.forEach((s, i) => {
+                        const li = document.createElement('li');
+                        const left = document.createElement('span');
+                        left.textContent = (i === 0 ? 'Ly gốc: ' : 'Bọc thêm: ') + s.label;
+                        const right = document.createElement('span');
+                        right.textContent = (i === 0 ? '' : '+') + money(s.added) + ' → ' + money(s.runningTotal);
+                        li.append(left, right);
+                        ul.appendChild(li);
+                    });
+                })
+                .catch(() => {});
+        }
+
+        form.addEventListener('change', refresh);
+        form.addEventListener('input', refresh);
+        refresh();
+    })();
+</script>
+</body>
+</html>

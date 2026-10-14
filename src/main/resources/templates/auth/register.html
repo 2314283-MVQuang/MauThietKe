@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Đăng ký')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div class="card auth-card p-4" style="max-width: 560px">
+        <h3 class="text-ts text-center mb-3">Đăng ký tài khoản</h3>
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <form th:action="@{/register}" th:object="${form}" method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tên đăng nhập *</label>
+                    <input th:field="*{username}" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Họ tên *</label>
+                    <input th:field="*{fullName}" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Mật khẩu *</label>
+                    <input th:field="*{password}" type="password" class="form-control" required minlength="5">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Nhập lại mật khẩu *</label>
+                    <input th:field="*{confirmPassword}" type="password" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Số điện thoại</label>
+                    <input th:field="*{phone}" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input th:field="*{email}" type="email" class="form-control">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Địa chỉ</label>
+                    <input th:field="*{address}" class="form-control">
+                </div>
+            </div>
+            <button class="btn btn-ts w-100 mt-4" type="submit">Đăng ký</button>
+        </form>
+        <div th:replace="~{fragments/auth :: google-button}"></div>
+
+        <p class="text-center mt-3 mb-0">Đã có tài khoản? <a th:href="@{/login}" class="text-ts">Đăng nhập</a></p>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Đơn của tôi')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <h3 class="text-ts mb-3"><i class="bi bi-receipt"></i> Đơn hàng của tôi</h3>
+
+    <div th:if="${#lists.isEmpty(orders)}" class="card p-5 text-center">
+        <p class="text-muted mb-2">Bạn chưa có đơn hàng nào.</p>
+        <a th:href="@{/}" class="btn btn-ts align-self-center">Đặt món ngay</a>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(orders)}">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>Mã đơn</th><th>Thời gian</th><th>Hình thức</th><th class="text-center">Số ly</th>
+                    <th class="text-end">Tổng tiền</th><th>Trạng thái</th><th>Thanh toán</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="o : ${orders}">
+                    <td class="fw-semibold" th:text="${o.orderCode}"></td>
+                    <td th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${o.orderType.label}"></td>
+                    <td class="text-center" th:text="${o.totalQuantity}"></td>
+                    <td class="text-end price" th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                    <td><span class="badge" th:classappend="'bg-' + ${o.status.badge}" th:text="${o.status.label}"></span></td>
+                    <td><span class="badge" th:classappend="'bg-' + ${o.paymentStatus.badge}" th:text="${o.paymentStatus.label}"></span></td>
+                    <td><a th:href="@{/orders/{id}(id=${o.id})}" class="btn btn-sm btn-outline-ts">Chi tiết</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

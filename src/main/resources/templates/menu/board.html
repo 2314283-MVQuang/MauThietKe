@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Menu in')}"></head>
+<body class="board-page">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <!-- Thanh công cụ (ẩn khi in) -->
+    <div class="board-toolbar no-print">
+        <div>
+            <h1 class="section-title" style="font-size: 2rem">Menu dạng bảng</h1>
+            <p class="section-sub">Tự cập nhật theo món và giá trong hệ thống. In khổ A4 hoặc tải ảnh để đăng mạng xã hội.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-ts btn-round px-3" onclick="window.print()"><i class="bi bi-printer"></i> In menu</button>
+            <button type="button" class="btn btn-peach btn-round px-3" id="btnDownload"><i class="bi bi-download"></i> Tải ảnh menu</button>
+        </div>
+    </div>
+
+    <div class="boards">
+        <section class="board" th:each="pg, ps : ${ {pageLeft, pageRight} }" th:if="${!#lists.isEmpty(pg) or ps.index == 1}"
+                 th:attr="data-page=${ps.count}">
+
+            <!-- Phần đầu màu kem, sữa "chảy" xuống nền trà -->
+            <header class="board-head">
+                <div class="board-brand">Trà Sữa DLU</div>
+                <div class="board-title">Menu</div>
+                <div class="board-subtitle">
+                    <th:block th:each="e, es : ${pg}"><span th:text="${e.key.name}">Trà sữa</span><span th:unless="${es.last}"> · </span></th:block>
+                    <th:block th:if="${ps.index == 1}"><span th:unless="${#lists.isEmpty(pg)}"> · </span>Topping</th:block>
+                </div>
+                <div class="board-drip" aria-hidden="true"></div>
+            </header>
+
+            <!-- Chấm tròn trang trí -->
+            <i class="dot" style="left:6%;  top:30%; --d:14px"></i>
+            <i class="dot" style="left:90%; top:36%; --d:10px"></i>
+            <i class="dot" style="left:84%; top:62%; --d:16px"></i>
+            <i class="dot" style="left:4%;  top:78%; --d:9px"></i>
+            <i class="dot" style="left:52%; top:92%; --d:12px"></i>
+
+            <div class="board-body">
+                <div class="board-list">
+                    <div class="board-section" th:each="e : ${pg}">
+                        <div class="board-cat">
+                            <span class="pill" th:text="${e.key.name}">Trà sữa</span>
+                            <span class="size-head">M <b>L</b></span>
+                        </div>
+                        <div class="board-item" th:each="p : ${e.value}">
+                            <div class="item-name">
+                                <span th:text="${p.name}">Tên món</span>
+                                <span class="item-star" th:if="${p.signature}" title="Signature">★</span>
+                                <small th:if="${p.tagline}" th:text="${p.tagline}">Câu giới thiệu</small>
+                            </div>
+                            <span class="leader"></span>
+                            <span class="item-price">
+                                <span th:text="${#numbers.formatDecimal(p.priceM / 1000, 1, 0)} + 'K'">25K</span>
+                                <b th:text="${#numbers.formatDecimal(p.priceL / 1000, 1, 0)} + 'K'">32K</b>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Trang 2: topping -->
+                    <div class="board-section" th:if="${ps.index == 1 and !#lists.isEmpty(toppings)}">
+                        <div class="board-cat"><span class="pill">Topping</span></div>
+                        <div class="topping-grid">
+                            <span class="topping" th:each="t : ${toppings}">
+                                <span th:text="${t.name}">Trân châu</span>
+                                <b th:text="'+' + ${#numbers.formatDecimal(t.price / 1000, 1, 0)} + 'K'">+5K</b>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ảnh ly tròn bên phải -->
+                <div class="board-photos" aria-hidden="true">
+                    <span class="photo" th:each="p : ${pagePhotos[ps.index]}"><img th:src="${p.imageUrl}" alt=""></span>
+                </div>
+            </div>
+
+            <div class="board-foot">
+                <span>01 Phù Đổng Thiên Vương, P.8, Đà Lạt</span>
+                <span>7:00 – 22:00</span>
+                <span>Tiền mặt · VietQR · MoMo</span>
+            </div>
+        </section>
+    </div>
+
+    <p class="text-muted small mt-3 no-print">★ là món signature của quán. Giá tính theo nghìn đồng (K), cột trái size M, cột phải size L.</p>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    (function () {
+        /* Tự co danh sách món cho vừa một tờ A4 (khi nhiều món hơn chỗ trống) */
+        function fit() {
+            document.querySelectorAll('.board').forEach(b => {
+                const body = b.querySelector('.board-body');
+                const list = b.querySelector('.board-list');
+                list.style.transform = '';
+                list.style.width = '';
+                const k = body.clientHeight / body.scrollHeight;
+                if (k < 1) {
+                    list.style.transformOrigin = 'top left';
+                    list.style.transform = 'scale(' + k.toFixed(3) + ')';
+                    list.style.width = (100 / k).toFixed(2) + '%';
+                }
+            });
+        }
+        document.fonts.ready.then(fit);
+        window.addEventListener('resize', fit);
+        window.addEventListener('beforeprint', fit);
+        window.addEventListener('afterprint', fit);
+
+        const btn = document.getElementById('btnDownload');
+        btn.addEventListener('click', async () => {
+            if (typeof html2canvas === 'undefined') {
+                alert('Không tải được thư viện xuất ảnh. Kiểm tra kết nối mạng rồi thử lại.');
+                return;
+            }
+            btn.disabled = true;
+            const label = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang tạo ảnh…';
+            try {
+                await document.fonts.ready;
+                for (const board of document.querySelectorAll('.board')) {
+                    const canvas = await html2canvas(board, {
+                        scale: 2, backgroundColor: null, useCORS: true,
+                        // Bản xuất ảnh bỏ vài hiệu ứng html2canvas vẽ chưa đúng (bóng đổ, mảng màu uốn lượn)
+                        onclone: doc => doc.querySelectorAll('.board').forEach(x => x.classList.add('exporting'))
+                    });
+                    const a = document.createElement('a');
+                    a.download = 'menu-tra-sua-dlu-trang-' + board.dataset.page + '.png';
+                    a.href = canvas.toDataURL('image/png');
+                    a.click();
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = label;
+            }
+        });
+    })();
+</script>
+</body>
+</html>

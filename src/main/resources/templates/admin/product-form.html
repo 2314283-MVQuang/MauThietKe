@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Đồ uống')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4" style="max-width: 900px">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <a th:href="@{/admin/products}" class="text-ts text-decoration-none"><i class="bi bi-arrow-left"></i> Danh sách đồ uống</a>
+    <h3 class="text-ts my-3" th:text="${product.id == null} ? 'Thêm đồ uống' : 'Sửa đồ uống'">Đồ uống</h3>
+
+    <form th:action="@{/admin/products/save}" th:object="${product}" method="post" enctype="multipart/form-data" id="productForm">
+        <input type="hidden" th:field="*{id}">
+        <div class="row g-4">
+            <!-- ================= ẢNH MÓN ================= -->
+            <div class="col-md-5">
+                <div class="card p-3">
+                    <h6 class="text-ts">Ảnh món</h6>
+                    <div id="previewFrame" class="photo-frame rounded-3 mb-3 position-relative"
+                         style="aspect-ratio: 1 / 1; border-radius: 12px; background: linear-gradient(135deg, #e9d2b4, #c98b4f); display:flex; align-items:center; justify-content:center">
+                        <img id="previewImg" th:src="${product.imageUrl}" th:classappend="${product.imageUrl == null} ? 'd-none'"
+                             alt="Ảnh món">
+                        <span id="previewEmpty" th:classappend="${product.imageUrl != null} ? 'd-none'" style="font-size:72px">🧋</span>
+                    </div>
+
+                    <!-- Ô file duy nhất gửi lên server: ảnh chọn từ máy hoặc ảnh chụp đều được đưa vào đây -->
+                    <input type="file" id="imageFile" name="imageFile" accept="image/*" class="d-none">
+                    <!-- Trên điện thoại: mở thẳng camera sau -->
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" class="d-none">
+
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-ts" id="btnPick">
+                            <i class="bi bi-folder2-open"></i> Chọn ảnh từ máy
+                        </button>
+                        <button type="button" class="btn btn-ts" id="btnCamera">
+                            <i class="bi bi-camera"></i> Chụp ảnh
+                        </button>
+                    </div>
+                    <small class="text-muted d-block mt-2" id="fileInfo">JPG, PNG, WEBP, GIF · tối đa 10MB · nên dùng ảnh vuông, món ở giữa</small>
+
+                    <div class="form-check mt-2" th:if="${product.imageUrl != null}">
+                        <input class="form-check-input" type="checkbox" id="removeImage" name="removeImage" value="true">
+                        <label class="form-check-label" for="removeImage">Xoá ảnh hiện tại</label>
+                    </div>
+
+                    <details class="mt-2">
+                        <summary class="small text-muted">Hoặc dán link ảnh trên mạng</summary>
+                        <input th:field="*{imageUrl}" class="form-control form-control-sm mt-2" placeholder="https://...">
+                    </details>
+                </div>
+            </div>
+
+            <!-- ================= THÔNG TIN MÓN ================= -->
+            <div class="col-md-7">
+                <div class="card p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Tên đồ uống *</label>
+                            <input th:field="*{name}" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="categoryId">Danh mục *</label>
+                            <select id="categoryId" name="categoryId" class="form-select" required>
+                                <option value="">-- Chọn --</option>
+                                <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"
+                                        th:selected="${categoryId == c.id}"></option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Mô tả</label>
+                            <textarea th:field="*{description}" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Giá size M (đ) *</label>
+                            <input th:field="*{priceM}" type="number" min="0" step="500" class="form-control" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Giá size L (đ) *</label>
+                            <input th:field="*{priceL}" type="number" min="0" step="500" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <small class="text-muted">Phần chênh lệch L - M được cộng bởi <code>SizeDecorator</code>.</small>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input th:field="*{available}" type="checkbox" class="form-check-input">
+                                <label class="form-check-label" th:for="${#ids.prev('available')}">Đang bán</label>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                    <h6 class="text-ts mb-1"><i class="bi bi-journal-text"></i> Giới thiệu món</h6>
+                    <p class="small text-muted">Hiện ở trang chi tiết món và trên thẻ món ngoài trang chủ.</p>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input th:field="*{signature}" type="checkbox" class="form-check-input" role="switch">
+                                <label class="form-check-label" th:for="${#ids.prev('signature')}">Món signature (hiện nổi bật ở trang chủ)</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Câu giới thiệu ngắn</label>
+                            <input th:field="*{tagline}" class="form-control" maxlength="200" placeholder="VD: Đào giòn, cam tươi, sả thơm – mát lạnh tức thì.">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Câu chuyện / cách pha chế</label>
+                            <textarea th:field="*{story}" class="form-control" rows="3" maxlength="2000"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Thành phần <small class="text-muted">(cách nhau bởi dấu phẩy)</small></label>
+                            <input th:field="*{ingredients}" class="form-control" maxlength="500" placeholder="Trà đen, Đào ngâm, Cam tươi, Sả">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Độ ngọt (0–5)</label>
+                            <input th:field="*{tasteSweet}" type="number" min="0" max="5" class="form-control">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Độ đậm (0–5)</label>
+                            <input th:field="*{tasteStrength}" type="number" min="0" max="5" class="form-control">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Độ béo (0–5)</label>
+                            <input th:field="*{tasteCreamy}" type="number" min="0" max="5" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Gợi ý cách gọi</label>
+                            <input th:field="*{suggestion}" class="form-control" maxlength="255" placeholder="VD: 50% đường + trân châu đen">
+                        </div>
+                    </div>
+                    <button class="btn btn-ts mt-4" type="submit"><i class="bi bi-save"></i> Lưu</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</main>
+
+<!-- ================= CỬA SỔ CHỤP ẢNH BẰNG WEBCAM ================= -->
+<div class="modal fade" id="cameraModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-camera"></i> Chụp ảnh món</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <video id="cameraVideo" autoplay playsinline muted class="w-100 rounded-3 bg-dark" style="max-height:60vh"></video>
+                <canvas id="cameraCanvas" class="d-none"></canvas>
+                <div id="cameraError" class="alert alert-warning mt-2 d-none"></div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" id="btnSwitchCam"><i class="bi bi-arrow-repeat"></i> Đổi camera</button>
+                <button type="button" class="btn btn-ts btn-lg" id="btnSnap"><i class="bi bi-circle-fill"></i> Chụp</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script>
+    (function () {
+        const MAX = 10 * 1024 * 1024;
+        const fileInput = document.getElementById('imageFile');
+        const cameraInput = document.getElementById('cameraInput');
+        const previewImg = document.getElementById('previewImg');
+        const previewEmpty = document.getElementById('previewEmpty');
+        const fileInfo = document.getElementById('fileInfo');
+        const removeBox = document.getElementById('removeImage');
+
+        function showPreview(file) {
+            const url = URL.createObjectURL(file);
+            previewImg.src = url;
+            previewImg.classList.remove('d-none');
+            previewEmpty.classList.add('d-none');
+            fileInfo.textContent = 'Ảnh mới: ' + (file.name || 'anh-chup.jpg') + ' (' + Math.round(file.size / 1024) + ' KB) - bấm Lưu để cập nhật';
+            if (removeBox) removeBox.checked = false;
+        }
+
+        /** Đưa một File vào ô imageFile (ô duy nhất được gửi lên server). */
+        function useFile(file) {
+            if (!file) return;
+            if (!file.type.startsWith('image/')) { alert('Vui lòng chọn file ảnh'); return; }
+            if (file.size > MAX) { alert('Ảnh quá lớn (tối đa 10MB)'); return; }
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            showPreview(file);
+        }
+
+        // ---- 1. Chọn ảnh từ máy ----
+        document.getElementById('btnPick').addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            const f = fileInput.files[0];
+            if (!f) return;
+            if (f.size > MAX) { alert('Ảnh quá lớn (tối đa 10MB)'); fileInput.value = ''; return; }
+            showPreview(f);
+        });
+        cameraInput.addEventListener('change', () => useFile(cameraInput.files[0]));
+
+        // ---- 2. Chụp ảnh bằng webcam (getUserMedia) ----
+        const modalEl = document.getElementById('cameraModal');
+        const modal = new bootstrap.Modal(modalEl);
+        const video = document.getElementById('cameraVideo');
+        const canvas = document.getElementById('cameraCanvas');
+        const camError = document.getElementById('cameraError');
+        let stream = null;
+        let facing = 'environment';
+
+        function stopCamera() {
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        }
+
+        async function startCamera() {
+            stopCamera();
+            camError.classList.add('d-none');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1280 } }, audio: false });
+                video.srcObject = stream;
+            } catch (e) {
+                camError.textContent = 'Không mở được camera (' + e.name + '). Hãy cho phép trình duyệt dùng camera, hoặc dùng "Chọn ảnh từ máy".';
+                camError.classList.remove('d-none');
+            }
+        }
+
+        document.getElementById('btnCamera').addEventListener('click', () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                cameraInput.click();   // trình duyệt cũ / điện thoại: dùng camera của hệ điều hành
+                return;
+            }
+            modal.show();
+        });
+        modalEl.addEventListener('shown.bs.modal', startCamera);
+        modalEl.addEventListener('hidden.bs.modal', stopCamera);
+        document.getElementById('btnSwitchCam').addEventListener('click', () => {
+            facing = facing === 'environment' ? 'user' : 'environment';
+            startCamera();
+        });
+
+        document.getElementById('btnSnap').addEventListener('click', () => {
+            if (!stream || !video.videoWidth) return;
+            // Thu nhỏ còn tối đa 1280px để file nhẹ
+            const scale = Math.min(1, 1280 / video.videoWidth);
+            canvas.width = Math.round(video.videoWidth * scale);
+            canvas.height = Math.round(video.videoHeight * scale);
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                const file = new File([blob], 'anh-chup-' + Date.now() + '.jpg', { type: 'image/jpeg' });
+                useFile(file);
+                modal.hide();
+            }, 'image/jpeg', 0.88);
+        });
+    })();
+</script>
+</body>
+</html>

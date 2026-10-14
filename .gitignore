@@ -1,0 +1,20 @@
+# Build / IDE
+target/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Cau hinh rieng tung may (mat khau DB, Google client secret) - KHONG dua len GitHub
+cau_hinh_rieng.properties
+
+# Anh upload luc chay, log, file tam
+uploads/
+app.log
+run.log
+env.txt
+*.zip
+app.properties.new
+database/trasua_db_dump.sql
+database/xuat_db.log
+*.tar

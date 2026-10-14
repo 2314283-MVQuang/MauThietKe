@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Trà sữa tươi mát Đà Lạt')}"></head>
+<body class="home">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main>
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero" id="hero">
+        <!-- Hạt trân châu nổi lên phía sau -->
+        <div class="pearls" aria-hidden="true">
+            <span style="left:6%;  --s:14px; --d:15s; --delay:-2s;  --x:30px"></span>
+            <span style="left:14%; --s:10px; --d:12s; --delay:-7s;  --x:-20px"></span>
+            <span style="left:23%; --s:18px; --d:18s; --delay:-11s; --x:24px"></span>
+            <span style="left:34%; --s:11px; --d:13s; --delay:-4s;  --x:-30px"></span>
+            <span style="left:45%; --s:16px; --d:16s; --delay:-9s;  --x:18px"></span>
+            <span style="left:56%; --s:9px;  --d:11s; --delay:-1s;  --x:-16px"></span>
+            <span style="left:64%; --s:20px; --d:19s; --delay:-14s; --x:26px"></span>
+            <span style="left:73%; --s:12px; --d:14s; --delay:-6s;  --x:-22px"></span>
+            <span style="left:82%; --s:15px; --d:17s; --delay:-12s; --x:20px"></span>
+            <span style="left:91%; --s:10px; --d:12s; --delay:-3s;  --x:-26px"></span>
+        </div>
+
+        <div class="container position-relative">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="hero-title">
+                        <span class="line">Mát lạnh</span>
+                        <span class="line line-leaf">từ Đà Lạt,</span>
+                        <span class="line line-berry">pha mới mỗi ly.</span>
+                    </h1>
+                    <p class="hero-lead">Trà sữa, trà trái cây và cà phê với dâu tây, khoai môn, Robusta của Lâm Đồng.
+                        Chọn size, mức đường, đá và topping theo đúng khẩu vị của bạn.</p>
+                    <div class="hero-cta d-flex flex-wrap gap-2 mt-4">
+                        <a href="#menu" class="btn btn-ts"><i class="bi bi-cup-straw"></i> Xem menu &amp; đặt món</a>
+                        <a href="#signature" class="btn btn-peach">Món signature</a>
+                    </div>
+                    <div class="hero-facts">
+                        <span><i class="bi bi-geo-alt-fill"></i> Phường 8, Đà Lạt</span>
+                        <span><i class="bi bi-clock-fill"></i> 7:00 – 22:00</span>
+                        <span><i class="bi bi-qr-code"></i> Quét QR Vietcombank / MoMo</span>
+                    </div>
+                    <p class="small text-muted mt-3 mb-0" sec:authorize="hasAnyRole('STAFF','ADMIN')">
+                        <i class="bi bi-shop"></i> Chế độ bán tại quầy: thêm món vào đơn rồi mở "Đơn tại quầy" để thanh toán.
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-stage" aria-hidden="true">
+                        <div class="hero-blob"></div>
+                        <!-- Mỗi lớp .plx dịch chuyển theo chuột với độ sâu khác nhau (parallax) -->
+                        <div class="plx" data-depth="8">
+                            <div class="hero-cup main" th:if="${heroCups.size() > 0}">
+                                <img th:src="${heroCups[0].imageUrl}" alt="">
+                            </div>
+                        </div>
+                        <div class="plx" data-depth="22">
+                            <div class="hero-cup side-a" th:if="${heroCups.size() > 1}">
+                                <img th:src="${heroCups[1].imageUrl}" alt="">
+                            </div>
+                        </div>
+                        <div class="plx" data-depth="30">
+                            <div class="hero-cup side-b" th:if="${heroCups.size() > 2}">
+                                <img th:src="${heroCups[2].imageUrl}" alt="">
+                            </div>
+                        </div>
+                        <div class="plx" data-depth="14">
+                            <div class="hero-sticker">Món<br>signature</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dải hương vị chạy ngang -->
+    <div class="flavor-strip" aria-hidden="true" th:unless="${#lists.isEmpty(flavors)}">
+        <div class="flavor-track">
+            <span th:each="f : ${flavors}" th:text="${f}">Trà sữa</span>
+            <span th:each="f : ${flavors}" th:text="${f}">Trà sữa</span>
+        </div>
+    </div>
+
+    <!-- ===================== SIGNATURE ===================== -->
+    <section class="section signature-section" id="signature" th:unless="${#lists.isEmpty(signatures)}">
+        <div class="container">
+            <div class="reveal">
+                <h2 class="section-title">Món signature của quán</h2>
+                <p class="section-sub">Ba ly được gọi nhiều nhất, mỗi ly một câu chuyện nguyên liệu riêng.</p>
+            </div>
+
+            <div class="sig-grid mt-4">
+                <!-- Món signature lớn -->
+                <a th:with="p=${signatures[0]}" th:href="@{/products/{id}(id=${p.id})}"
+                   class="sig-card big reveal" th:classappend="'tone-' + ${p.tone}">
+                    <div class="sig-photo"><img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}"></div>
+                    <div class="sig-body">
+                        <span class="sig-badge"><i class="bi bi-stars"></i> Signature</span>
+                        <div class="sig-name" th:text="${p.name}">Tên món</div>
+                        <p class="sig-tagline" th:text="${p.tagline}">Câu giới thiệu</p>
+                        <div class="taste" th:if="${p.tasteSweet + p.tasteStrength + p.tasteCreamy > 0}">
+                            <span>Độ ngọt</span><span class="dots"><i th:each="i : ${#numbers.sequence(1,5)}" th:classappend="${i <= p.tasteSweet} ? 'on'"></i></span>
+                            <span>Độ đậm</span><span class="dots"><i th:each="i : ${#numbers.sequence(1,5)}" th:classappend="${i <= p.tasteStrength} ? 'on'"></i></span>
+                            <span>Độ béo</span><span class="dots"><i th:each="i : ${#numbers.sequence(1,5)}" th:classappend="${i <= p.tasteCreamy} ? 'on'"></i></span>
+                        </div>
+                        <div class="sig-foot">
+                            <div>
+                                <div class="sig-price" th:text="${#numbers.formatDecimal(p.priceM, 1, 'POINT', 0, 'COMMA')} + 'đ'">35.000đ</div>
+                                <span th:replace="~{fragments/stars :: stars(${p.ratingAvg}, ${p.ratingCount})}"></span>
+                            </div>
+                            <span class="sig-go"><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Hai món signature nhỏ -->
+                <div class="sig-small-col">
+                    <a th:each="p, st : ${signatures}" th:if="${st.index > 0}"
+                       th:href="@{/products/{id}(id=${p.id})}"
+                       class="sig-card reveal" th:classappend="'tone-' + ${p.tone} + ' reveal-delay-' + ${st.index}">
+                        <div class="sig-body">
+                            <span class="sig-badge"><i class="bi bi-stars"></i> Signature</span>
+                            <div class="sig-name" th:text="${p.name}">Tên món</div>
+                            <p class="sig-tagline small" th:text="${p.tagline}">Câu giới thiệu</p>
+                            <div class="sig-foot">
+                                <div>
+                                    <div class="sig-price" th:text="${#numbers.formatDecimal(p.priceM, 1, 'POINT', 0, 'COMMA')} + 'đ'">30.000đ</div>
+                                    <span th:replace="~{fragments/stars :: stars(${p.ratingAvg}, ${p.ratingCount})}"></span>
+                                </div>
+                                <span class="sig-go"><i class="bi bi-arrow-right"></i></span>
+                            </div>
+                        </div>
+                        <div class="sig-photo"><img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== MENU ===================== -->
+    <section class="section menu-section" id="menu">
+        <div class="container">
+            <div class="reveal">
+                <h2 class="section-title">Menu hôm nay</h2>
+                <p class="section-sub">Bấm vào món để chọn size, đường, đá và topping – giá cập nhật ngay khi bạn chọn.</p>
+                <a th:href="@{/menu-board}" class="btn btn-outline-ts btn-round btn-sm mt-3"><i class="bi bi-journal-richtext"></i> Xem menu dạng bảng · In / tải ảnh</a>
+            </div>
+
+            <div class="menu-toolbar reveal">
+                <nav class="cat-tabs" aria-label="Danh mục">
+                    <a th:href="@{/} + '#menu'" class="cat-tab c-0" data-cat="all" th:classappend="${selectedCategory == null} ? 'active'">Tất cả</a>
+                    <a th:each="c : ${categories}" th:href="@{/(category=${c.id})} + '#menu'" th:attr="data-cat=${c.id}"
+                       class="cat-tab" th:classappend="'c-' + ${c.id % 5} + (${selectedCategory == c.id} ? ' active' : '')"
+                       th:text="${c.name}">Danh mục</a>
+                </nav>
+                <form th:action="@{/} + '#menu'" method="get" class="menu-search" role="search" id="menuSearch">
+                    <i class="bi bi-search"></i>
+                    <input class="form-control" type="search" name="q" th:value="${q}" placeholder="Tìm đồ uống…" aria-label="Tìm đồ uống">
+                </form>
+            </div>
+
+            <div id="menuEmpty" class="text-center py-5" hidden>
+                <div style="font-size: 3rem">🧋</div>
+                <p class="mb-2">Không tìm thấy món phù hợp.</p>
+                <a th:href="@{/} + '#menu'" class="btn btn-outline-ts btn-round" data-cat="all">Xem tất cả món</a>
+            </div>
+
+            <div class="row g-3 g-lg-4" id="menuGrid">
+                <div class="col-6 col-md-4 col-lg-3 menu-item" th:each="p, st : ${products}"
+                     th:attr="data-cat=${p.category.id},data-name=${p.name}"
+                     th:hidden="${(selectedCategory != null and p.category.id != selectedCategory)
+                                 or (q != null and !#strings.isEmpty(q) and !#strings.containsIgnoreCase(p.name, q))}">
+                    <article class="card drink-card h-100 reveal" th:classappend="'reveal-delay-' + ${st.index % 4}"
+                             th:style="'view-transition-name: card-' + ${p.id}">
+                        <a th:href="@{/products/{id}(id=${p.id})}" class="drink-thumb text-decoration-none"
+                           th:classappend="${p.imageUrl} ? 'photo-frame'">
+                            <img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}"
+                                 th:style="'view-transition-name: drink-' + ${p.id}">
+                            <span th:unless="${p.imageUrl}">🧋</span>
+                            <span class="chip-cat" th:text="${p.category.name}">Trà sữa</span>
+                            <span class="chip-sig" th:if="${p.signature}"><i class="bi bi-stars"></i> Signature</span>
+                        </a>
+                        <div class="card-body d-flex flex-column">
+                            <h3 class="card-title mb-1">
+                                <a th:href="@{/products/{id}(id=${p.id})}" class="text-reset text-decoration-none" th:text="${p.name}">Tên món</a>
+                            </h3>
+                            <a th:href="@{/products/{id}(id=${p.id})} + '#reviews'" class="text-decoration-none mb-1">
+                                <span th:replace="~{fragments/stars :: stars(${p.ratingAvg}, ${p.ratingCount})}"></span>
+                            </a>
+                            <p class="drink-tagline mb-2" th:text="${p.tagline != null} ? ${p.tagline} : ${p.description}">Mô tả</p>
+                            <div class="mt-auto d-flex align-items-end justify-content-between gap-2">
+                                <div>
+                                    <div class="drink-price" th:text="${#numbers.formatDecimal(p.priceM, 1, 'POINT', 0, 'COMMA')} + 'đ'">25.000đ</div>
+                                    <small class="text-muted" th:text="'Size L ' + ${#numbers.formatDecimal(p.priceL, 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
+                                </div>
+
+                                <!-- Thêm nhanh theo công thức của DrinkDirector (Builder Pattern) -->
+                                <div class="dropdown quick-add" sec:authorize="isAuthenticated()">
+                                    <button class="btn btn-ts btn-round px-3" type="button" data-bs-toggle="dropdown"
+                                            aria-expanded="false" th:attr="aria-label='Thêm nhanh ' + ${p.name}">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><h6 class="dropdown-header">Thêm nhanh vào giỏ</h6></li>
+                                        <li th:each="r : ${ {'default','less-sweet','special'} }">
+                                            <form th:action="@{/cart/quick-add}" method="post">
+                                                <input type="hidden" name="productId" th:value="${p.id}">
+                                                <input type="hidden" name="recipe" th:value="${r}">
+                                                <button class="dropdown-item" type="submit"
+                                                        th:text="${r == 'default'} ? 'Công thức mặc định' : (${r == 'less-sweet'} ? 'Ít ngọt (30% đường)' : 'Đặc biệt: size L + 2 topping')">Mặc định</button>
+                                            </form>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" th:href="@{/products/{id}(id=${p.id})}">Tự chọn size, đường, đá…</a></li>
+                                    </ul>
+                                </div>
+                                <a sec:authorize="!isAuthenticated()" th:href="@{/products/{id}(id=${p.id})}"
+                                   class="btn btn-ts btn-round px-3" th:attr="aria-label='Chọn ' + ${p.name}"><i class="bi bi-plus-lg"></i></a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== ĐẶT LY THEO Ý BẠN (3 bước) ===================== -->
+    <section class="section steps-section">
+        <div class="container">
+            <div class="reveal">
+                <h2 class="section-title">Đặt ly theo ý bạn</h2>
+                <p class="section-sub">Ba bước từ menu đến ly nước trên tay.</p>
+            </div>
+            <div class="steps mt-4">
+                <div class="step reveal">
+                    <div class="num">1</div>
+                    <h3>Chọn món</h3>
+                    <p>Lướt menu hoặc thêm nhanh theo công thức có sẵn: mặc định, ít ngọt, đặc biệt.</p>
+                    <span class="tag">Builder · Director</span>
+                </div>
+                <div class="step reveal reveal-delay-1">
+                    <div class="num">2</div>
+                    <h3>Chỉnh theo khẩu vị</h3>
+                    <p>Size M/L, đường, đá, tối đa 5 topping – giá cộng dồn hiện ngay bên cạnh.</p>
+                    <span class="tag">Decorator</span>
+                </div>
+                <div class="step reveal reveal-delay-2">
+                    <div class="num">3</div>
+                    <h3>Nhập mã &amp; thanh toán</h3>
+                    <p>Áp mã giảm giá, trả tiền mặt hoặc quét QR Vietcombank / MoMo.</p>
+                    <span class="tag">Strategy</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== KHÁCH NÓI GÌ ===================== -->
+    <section class="section reviews-section" th:unless="${#lists.isEmpty(highlightReviews)}">
+        <div class="container">
+            <div class="reveal">
+                <h2 class="section-title">Khách nói gì</h2>
+                <p class="section-sub">Nhận xét mới nhất từ khách đã mua.</p>
+            </div>
+            <div class="row g-4 mt-1">
+                <div class="col-md-4" th:each="r, st : ${highlightReviews}">
+                    <figure class="quote-card reveal m-0" th:classappend="'reveal-delay-' + ${st.index}">
+                        <span th:replace="~{fragments/stars :: fixed(${r.rating})}"></span>
+                        <p th:text="${r.comment}">Nhận xét</p>
+                        <figcaption class="quote-who">
+                            <span class="review-avatar" th:text="${#strings.substring(r.user.fullName, 0, 1)}">T</span>
+                            <span><strong th:text="${r.user.fullName}">Tên</strong><br>
+                                <a th:href="@{/products/{id}(id=${r.product.id})}" th:text="${r.product.name}">Món</a></span>
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== GHÉ QUÁN ===================== -->
+    <section class="section pb-0">
+        <div class="container">
+            <div class="visit reveal">
+                <div>
+                    <h2>Ghé quán hoặc đặt giao tận nơi</h2>
+                    <p class="muted mb-0 mt-2">Đặt online, quán xác nhận và pha ngay. Giao trong bán kính 5 km.</p>
+                </div>
+                <div>
+                    <div><i class="bi bi-geo-alt-fill"></i> 01 Phù Đổng Thiên Vương</div>
+                    <div class="muted">Phường 8, Đà Lạt</div>
+                    <div class="mt-2"><i class="bi bi-clock-fill"></i> 7:00 – 22:00 mỗi ngày</div>
+                </div>
+                <div class="text-lg-end">
+                    <a href="#menu" class="btn btn-peach btn-lg btn-round px-4">Đặt món ngay</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

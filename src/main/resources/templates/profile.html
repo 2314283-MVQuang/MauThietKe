@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Hồ sơ')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <h3 class="text-ts mb-3"><i class="bi bi-person-circle"></i> Hồ sơ cá nhân</h3>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card p-4">
+                <h5>Thông tin</h5>
+                <p class="text-muted mb-3">
+                    Tài khoản <strong th:text="${user.username}"></strong> ·
+                    Vai trò <span class="badge bg-light text-ts" th:text="${user.role.label}"></span>
+                </p>
+                <form th:action="@{/profile}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Họ tên</label>
+                            <input name="fullName" class="form-control" th:value="${user.fullName}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số điện thoại</label>
+                            <input name="phone" class="form-control" th:value="${user.phone}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input name="email" type="email" class="form-control" th:value="${user.email}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Địa chỉ</label>
+                            <input name="address" class="form-control" th:value="${user.address}">
+                        </div>
+                    </div>
+                    <button class="btn btn-ts mt-3">Lưu thay đổi</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card p-4">
+                <h5>Đổi mật khẩu</h5>
+                <form th:action="@{/profile/password}" method="post">
+                    <div class="mb-2">
+                        <label class="form-label">Mật khẩu hiện tại</label>
+                        <input name="oldPassword" type="password" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Mật khẩu mới</label>
+                        <input name="newPassword" type="password" class="form-control" required minlength="5">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Nhập lại mật khẩu mới</label>
+                        <input name="confirmPassword" type="password" class="form-control" required>
+                    </div>
+                    <button class="btn btn-outline-ts mt-2">Đổi mật khẩu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

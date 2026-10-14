@@ -1,0 +1,13 @@
+# =====================================================================
+#  MẪU CẤU HÌNH RIÊNG - copy file này thành  cau_hinh_rieng.properties
+#  (cùng thư mục) rồi điền giá trị của máy bạn. File cau_hinh_rieng.properties
+#  KHÔNG được đưa lên GitHub và sẽ GHI ĐÈ application.properties.
+# =====================================================================
+
+# Mật khẩu tài khoản postgres trên máy bạn (lúc cài PostgreSQL)
+spring.datasource.password=123456
+
+# Đăng nhập bằng Google (để trống = tắt). Tạo tại https://console.cloud.google.com/apis/credentials
+# Authorized redirect URI:  http://localhost:8080/login/oauth2/code/google
+app.google.client-id=
+app.google.client-secret=
