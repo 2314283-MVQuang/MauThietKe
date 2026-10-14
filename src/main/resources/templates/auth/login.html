@@ -1,40 +1,85 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Đăng nhập')}"></head>
-<body>
+<body class="auth-page">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<main class="container">
-    <div class="card auth-card p-4">
-        <h3 class="text-ts text-center mb-3">🧋 Đăng nhập</h3>
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <th:block th:with="err=${param.error != null ? param.error[0] : null}">
-            <div th:if="${err == ''}" class="alert alert-danger">Sai tên đăng nhập / mật khẩu, hoặc tài khoản đã bị khoá.</div>
-            <div th:if="${err == 'google'}" class="alert alert-danger">Đăng nhập Google không thành công. Vui lòng thử lại.</div>
-            <div th:if="${err == 'locked'}" class="alert alert-danger">Tài khoản của bạn đã bị khoá. Vui lòng liên hệ quán.</div>
-        </th:block>
-        <div th:if="${param.logout}" class="alert alert-info">Bạn đã đăng xuất.</div>
-        <div th:if="${param.google}" class="alert alert-warning small">
-            Đăng nhập Google chưa được bật trên máy chủ này: cần điền <code>app.google.client-id</code> và
-            <code>app.google.client-secret</code> trong <code>application.properties</code> (xem README).
+<main class="auth-split">
+    <!-- Nửa trái: khung thương hiệu (tiêu đề + hạt trân châu lấy từ hero trang chủ) -->
+    <section class="auth-brand" aria-label="Giới thiệu Trà Sữa DLU">
+        <div class="pearls" aria-hidden="true">
+            <span style="left:8%;  --s:14px; --d:15s; --delay:-2s;  --x:30px"></span>
+            <span style="left:22%; --s:10px; --d:12s; --delay:-7s;  --x:-20px"></span>
+            <span style="left:37%; --s:18px; --d:18s; --delay:-11s; --x:24px"></span>
+            <span style="left:52%; --s:11px; --d:13s; --delay:-4s;  --x:-30px"></span>
+            <span style="left:67%; --s:16px; --d:16s; --delay:-9s;  --x:18px"></span>
+            <span style="left:80%; --s:9px;  --d:11s; --delay:-1s;  --x:-16px"></span>
+            <span style="left:92%; --s:13px; --d:14s; --delay:-6s;  --x:-22px"></span>
         </div>
 
-        <form th:action="@{/login}" method="post">
-            <div class="mb-3">
-                <label class="form-label" for="username">Tên đăng nhập</label>
-                <input class="form-control" id="username" name="username" required autofocus>
-            </div>
-            <div class="mb-3">
-                <label class="form-label" for="password">Mật khẩu</label>
-                <input class="form-control" id="password" name="password" type="password" required>
-            </div>
-            <button class="btn btn-ts w-100" type="submit">Đăng nhập</button>
-        </form>
+        <div class="auth-brand-inner">
+            <p class="hero-title">
+                <span class="line">Mát lạnh</span>
+                <span class="line line-leaf">từ Đà Lạt,</span>
+                <span class="line line-berry">pha mới mỗi ly.</span>
+            </p>
 
-        <div th:replace="~{fragments/auth :: google-button}"></div>
+            <div class="auth-cups">
+                <div class="auth-cup">
+                    <img th:src="@{/images/products/07-tra-dau-tay-da-lat.jpg}" width="140" height="140"
+                         alt="Ly trà dâu tây Đà Lạt màu đỏ, phủ dâu tươi cắt nhỏ và lá bạc hà">
+                </div>
+                <div class="auth-cup is-main">
+                    <img th:src="@{/images/products/02-tra-sua-tran-chau-duong-den.jpg}" width="180" height="180"
+                         alt="Ly trà sữa trân châu đường đen, sốt đường đen chảy quanh thành ly, trân châu ở đáy">
+                </div>
+                <div class="auth-cup">
+                    <img th:src="@{/images/products/04-tra-sua-khoai-mon.jpg}" width="140" height="140"
+                         alt="Ly trà sữa khoai môn màu tím, bên trên có khoai môn và thạch">
+                </div>
+            </div>
 
-        <p class="text-center mt-3 mb-0">Chưa có tài khoản? <a th:href="@{/register}" class="text-ts">Đăng ký</a></p>
-    </div>
+            <ul class="auth-perks">
+                <li><i class="bi bi-cup-straw" aria-hidden="true"></i> Pha mới mỗi ly</li>
+                <li><i class="bi bi-sliders" aria-hidden="true"></i> Tuỳ chỉnh size, đường, đá, topping</li>
+                <li><i class="bi bi-qr-code-scan" aria-hidden="true"></i> Thanh toán bằng mã QR</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Nửa phải: form đăng nhập -->
+    <section class="auth-form-side">
+        <div class="card auth-card p-4">
+            <h1 class="h3 text-ts text-center mb-3">🧋 Đăng nhập</h1>
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+            <th:block th:with="err=${param.error != null ? param.error[0] : null}">
+                <div th:if="${err == ''}" class="alert alert-danger">Sai tên đăng nhập / mật khẩu, hoặc tài khoản đã bị khoá.</div>
+                <div th:if="${err == 'google'}" class="alert alert-danger">Đăng nhập Google không thành công. Vui lòng thử lại.</div>
+                <div th:if="${err == 'locked'}" class="alert alert-danger">Tài khoản của bạn đã bị khoá. Vui lòng liên hệ quán.</div>
+            </th:block>
+            <div th:if="${param.logout}" class="alert alert-info">Bạn đã đăng xuất.</div>
+            <div th:if="${param.google}" class="alert alert-warning small">
+                Đăng nhập Google chưa được bật trên máy chủ này: cần điền <code>app.google.client-id</code> và
+                <code>app.google.client-secret</code> trong <code>application.properties</code> (xem README).
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="mb-3">
+                    <label class="form-label" for="username">Tên đăng nhập</label>
+                    <input class="form-control" id="username" name="username" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="password">Mật khẩu</label>
+                    <input class="form-control" id="password" name="password" type="password" required>
+                </div>
+                <button class="btn btn-ts w-100" type="submit">Đăng nhập</button>
+            </form>
+
+            <div th:replace="~{fragments/auth :: google-button}"></div>
+
+            <p class="text-center mt-3 mb-0">Chưa có tài khoản? <a th:href="@{/register}" class="text-ts">Đăng ký</a></p>
+        </div>
+    </section>
 </main>
 
 <div th:replace="~{fragments/layout :: footer}"></div>
