@@ -7,6 +7,7 @@
 - Công nghệ: Java 17+, Spring Boot 3.5, Spring MVC + Thymeleaf, Spring Data JPA, Spring Security, PostgreSQL
 
 > Giải thích chi tiết 3 mẫu thiết kế: xem file **`GIAI_THICH_MAU_THIET_KE.md`**.
+> Đặc tả & phân công công việc giai đoạn 2 (Trung, Tuấn, Thuận, Tiến): xem file **`SPEC.md`**.
 
 ---
 
