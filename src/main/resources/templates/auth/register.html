@@ -1,51 +1,96 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Đăng ký')}"></head>
-<body>
+<body class="auth-page">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<main class="container">
-    <div class="card auth-card p-4" style="max-width: 560px">
-        <h3 class="text-ts text-center mb-3">Đăng ký tài khoản</h3>
-        <div th:replace="~{fragments/layout :: alerts}"></div>
+<main class="auth-split">
+    <!-- Nửa trái: khung thương hiệu (cùng bố cục trang Đăng nhập, nội dung dành cho khách mới) -->
+    <section class="auth-brand" aria-label="Lợi ích khi có tài khoản">
+        <div class="pearls" aria-hidden="true">
+            <span style="left:8%;  --s:14px; --d:15s; --delay:-2s;  --x:30px"></span>
+            <span style="left:22%; --s:10px; --d:12s; --delay:-7s;  --x:-20px"></span>
+            <span style="left:37%; --s:18px; --d:18s; --delay:-11s; --x:24px"></span>
+            <span style="left:52%; --s:11px; --d:13s; --delay:-4s;  --x:-30px"></span>
+            <span style="left:67%; --s:16px; --d:16s; --delay:-9s;  --x:18px"></span>
+            <span style="left:80%; --s:9px;  --d:11s; --delay:-1s;  --x:-16px"></span>
+            <span style="left:92%; --s:13px; --d:14s; --delay:-6s;  --x:-22px"></span>
+        </div>
 
-        <form th:action="@{/register}" th:object="${form}" method="post">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Tên đăng nhập *</label>
-                    <input th:field="*{username}" class="form-control" required>
+        <div class="auth-brand-inner">
+            <p class="hero-title">
+                <span class="line">Tạo tài khoản</span>
+                <span class="line line-leaf">để đặt món</span>
+                <span class="line line-berry">nhanh hơn.</span>
+            </p>
+
+            <div class="auth-cups">
+                <div class="auth-cup">
+                    <img th:src="@{/images/products/03-tra-sua-matcha.jpg}" width="140" height="140"
+                         alt="Ly trà sữa matcha màu xanh lá, bên trên có đậu đỏ">
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Họ tên *</label>
-                    <input th:field="*{fullName}" class="form-control" required>
+                <div class="auth-cup is-main">
+                    <img th:src="@{/images/products/01-tra-sua-truyen-thong.jpg}" width="180" height="180"
+                         alt="Ly trà sữa truyền thống với nhiều trân châu đen phủ bên trên">
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Mật khẩu *</label>
-                    <input th:field="*{password}" type="password" class="form-control" required minlength="5">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Nhập lại mật khẩu *</label>
-                    <input th:field="*{confirmPassword}" type="password" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Số điện thoại</label>
-                    <input th:field="*{phone}" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Email</label>
-                    <input th:field="*{email}" type="email" class="form-control">
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Địa chỉ</label>
-                    <input th:field="*{address}" class="form-control">
+                <div class="auth-cup">
+                    <img th:src="@{/images/products/06-tra-vai-hoa-hong.jpg}" width="140" height="140"
+                         alt="Ly trà vải hoa hồng màu hồng đỏ, trang trí lát cam khô và cánh hoa hồng">
                 </div>
             </div>
-            <button class="btn btn-ts w-100 mt-4" type="submit">Đăng ký</button>
-        </form>
-        <div th:replace="~{fragments/auth :: google-button}"></div>
 
-        <p class="text-center mt-3 mb-0">Đã có tài khoản? <a th:href="@{/login}" class="text-ts">Đăng nhập</a></p>
-    </div>
+            <ul class="auth-perks">
+                <li><i class="bi bi-person-check" aria-hidden="true"></i> Tự điền tên, SĐT, địa chỉ khi đặt món</li>
+                <li><i class="bi bi-lightning-charge" aria-hidden="true"></i> Thêm nhanh vào giỏ theo công thức có sẵn</li>
+                <li><i class="bi bi-receipt" aria-hidden="true"></i> Theo dõi đơn và đánh giá món đã uống</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Nửa phải: form đăng ký -->
+    <section class="auth-form-side">
+        <div class="card auth-card p-4" style="max-width: 560px">
+            <h1 class="h3 text-ts text-center mb-3">Đăng ký tài khoản</h1>
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <form th:action="@{/register}" th:object="${form}" method="post">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tên đăng nhập *</label>
+                        <input th:field="*{username}" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Họ tên *</label>
+                        <input th:field="*{fullName}" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mật khẩu *</label>
+                        <input th:field="*{password}" type="password" class="form-control" required minlength="5">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nhập lại mật khẩu *</label>
+                        <input th:field="*{confirmPassword}" type="password" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Số điện thoại</label>
+                        <input th:field="*{phone}" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input th:field="*{email}" type="email" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Địa chỉ</label>
+                        <input th:field="*{address}" class="form-control">
+                    </div>
+                </div>
+                <button class="btn btn-ts w-100 mt-4" type="submit">Đăng ký</button>
+            </form>
+            <div th:replace="~{fragments/auth :: google-button}"></div>
+
+            <p class="text-center mt-3 mb-0">Đã có tài khoản? <a th:href="@{/login}" class="text-ts">Đăng nhập</a></p>
+        </div>
+    </section>
 </main>
 
 <div th:replace="~{fragments/layout :: footer}"></div>

@@ -584,3 +584,78 @@ main { animation: page-in .45s cubic-bezier(.2, .8, .2, 1) both; }
 }
 .btn-google:hover, .btn-google:focus { background: var(--mint); border-color: var(--leaf); color: var(--ink); }
 .btn-google .bi-google { font-size: 1.1rem; color: #4285F4; }
+
+/* ===== AUTH SPLIT (Trung) ===== */
+/* Trang Đăng nhập / Đăng ký chia đôi: nửa trái khung thương hiệu, nửa phải form.
+   Dùng lại .hero-title, .pearls và keyframes blob / bob / cup-in của trang chủ. */
+.auth-page footer { margin-top: 0 !important; } /* 2 nửa chạm sát chân trang, không thêm khoảng cuộn */
+
+.auth-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+.auth-brand {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: clamp(16px, 3vh, 48px) clamp(24px, 4vw, 64px);
+    background:
+        radial-gradient(60% 50% at 92% 6%, var(--peach-soft) 0%, transparent 70%),
+        radial-gradient(55% 45% at 4% 96%, var(--taro-soft) 0%, transparent 70%),
+        linear-gradient(160deg, var(--honey-soft) 0%, var(--ts-milk) 52%, var(--mint-2) 100%);
+}
+.auth-brand-inner { position: relative; z-index: 1; width: 100%; max-width: 520px; margin: 0 auto; }
+.auth-brand .hero-title { font-size: clamp(2rem, 3.2vw, 3.2rem); line-height: 1.06; margin: 0; } /* dấu tiếng Việt 2 dòng không chạm nhau */
+
+.auth-cups { --cup: clamp(76px, 12vh, 124px); position: relative; display: flex; align-items: center; width: fit-content; margin: clamp(14px, 3vh, 32px) 0; }
+.auth-cups::before {
+    content: ""; position: absolute; inset: -12% -6%;
+    border-radius: 46% 54% 42% 58% / 52% 44% 56% 48%;
+    background: linear-gradient(140deg, var(--honey-soft), var(--peach) 120%);
+    animation: blob 12s ease-in-out infinite;
+}
+.auth-cup {
+    position: relative; flex: none;
+    width: var(--cup); aspect-ratio: 1; border-radius: 50%; overflow: hidden;
+    background: var(--ts-milk); border: 5px solid var(--ts-milk);
+    box-shadow: 0 14px 30px color-mix(in srgb, var(--ink) 18%, transparent);
+    animation: cup-in .8s cubic-bezier(.2, .9, .25, 1.2) .3s both, bob 6s ease-in-out -3s infinite;
+}
+.auth-cup + .auth-cup { margin-left: calc(var(--cup) * -.2); }
+.auth-cup.is-main { width: calc(var(--cup) * 1.3); z-index: 1; animation-delay: .1s, 0s; }
+.auth-cup:last-child { animation-delay: .5s, -1.5s; }
+.auth-cup img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.auth-perks { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.auth-perks li { display: flex; align-items: center; gap: .7rem; font-weight: 600; color: var(--ink); }
+.auth-perks i {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--leaf); color: var(--ts-milk);
+}
+.auth-perks li:nth-child(2) i { background: var(--peach); color: var(--ink); }
+.auth-perks li:nth-child(3) i { background: var(--taro); color: var(--ts-milk); }
+
+.auth-form-side { display: flex; align-items: center; justify-content: center; padding: clamp(16px, 3vh, 48px) clamp(16px, 4vw, 48px); }
+.auth-form-side .auth-card { width: 100%; margin: 0; }
+
+/* Dưới 992px: nửa trái thu thành dải banner mỏng phía trên, form ngay bên dưới */
+@media (max-width: 991.98px) {
+    .auth-split { grid-template-columns: minmax(0, 1fr); align-content: start; }
+    .auth-brand { padding: 18px 16px; }
+    .auth-brand-inner { max-width: 560px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px 16px; }
+    .auth-brand .hero-title { font-size: clamp(1.35rem, 4.4vw, 1.9rem); line-height: 1.1; letter-spacing: -.3px; }
+    .auth-brand .hero-title .line { display: inline; }
+    .auth-cups { --cup: 52px; margin: 0 6px 0 0; }
+    .auth-cup { border-width: 3px; }
+    .auth-perks { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 8px; }
+    .auth-perks li { gap: .4rem; font-size: .82rem; padding: 3px 10px 3px 3px; border-radius: 999px; background: color-mix(in srgb, var(--ts-milk) 75%, transparent); }
+    .auth-perks i { width: 24px; height: 24px; font-size: .78rem; }
+    .auth-form-side { padding: 20px 16px 8px; }
+}
+@media (max-width: 575.98px) {
+    .auth-brand-inner { grid-template-columns: minmax(0, 1fr); }
+    .auth-cups { display: none; } /* điện thoại: ẩn ảnh để form lên sát đầu trang */
+}
+@media (prefers-reduced-motion: reduce) {
+    .auth-brand .pearls { display: none; }
+}
