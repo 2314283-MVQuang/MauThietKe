@@ -33,15 +33,17 @@ public class PatternConfig {
             @Value("${app.bank.name}") String bankName,
             @Value("${app.bank.account-number}") String accountNumber,
             @Value("${app.bank.account-name}") String accountName,
-            @Value("${app.bank.qr-image}") String qrImage) {
-        return new BankTransferPaymentStrategy(bankName, accountNumber, accountName, qrImage);
+            @Value("${app.bank.qr-image}") String qrImage,
+            @Value("${app.bank.bin:970436}") String bankBin) {
+        return new BankTransferPaymentStrategy(bankName, accountNumber, accountName, qrImage, bankBin);
     }
 
     @Bean
     public MomoPaymentStrategy momoPaymentStrategy(
             @Value("${app.momo.account-name}") String accountName,
-            @Value("${app.momo.qr-image}") String qrImage) {
-        return new MomoPaymentStrategy(accountName, qrImage);
+            @Value("${app.momo.qr-image}") String qrImage,
+            @Value("${app.momo.qr-payload:}") String qrPayload) {
+        return new MomoPaymentStrategy(accountName, qrImage, qrPayload);
     }
 
     /**

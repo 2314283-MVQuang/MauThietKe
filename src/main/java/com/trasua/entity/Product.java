@@ -3,8 +3,12 @@ package com.trasua.entity;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
-/** Đồ uống trong menu. Có 2 giá: size M (giá gốc) và size L. */
+/** Đồ uống trong menu. Có sẵn size M (giá gốc) và size L, quản lý có thể thêm size khác (S, XL...) kèm giá. */
 @Entity
 @Table(name = "products")
 public class Product {
@@ -31,6 +35,15 @@ public class Product {
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
+
+    /** Các size thêm (ngoài M, L) - VD S 22.000đ, XL 39.000đ. */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("price ASC")
+    private List<ProductSize> extraSizes = new ArrayList<>();
+
+    /** Một lựa chọn size hiển thị cho khách: mã (M, L, XL...), nhãn, giá. */
+    public record SizeOption(String code, String label, BigDecimal price) {
+    }
 
     /**
      * Điểm sao trung bình & số lượt đánh giá (chỉ tính đánh giá đang hiển thị).
@@ -79,6 +92,13 @@ public class Product {
     @Column(name = "available", nullable = false)
     private boolean available = true;
 
+    /** Ai đánh dấu còn / hết món gần nhất và lúc nào (nhân viên quầy). */
+    @Column(name = "stock_updated_by", length = 50)
+    private String stockUpdatedBy;
+
+    @Column(name = "stock_updated_at")
+    private java.time.LocalDateTime stockUpdatedAt;
+
     public Product() {
     }
 
@@ -90,6 +110,32 @@ public class Product {
         this.priceM = priceM;
         this.priceL = priceL;
     }
+
+    /** Tất cả size của món (M, L + size thêm), xếp theo giá tăng dần. */
+    public List<SizeOption> getSizeOptions() {
+        List<SizeOption> list = new ArrayList<>();
+        list.add(new SizeOption("M", "Size M", priceM));
+        list.add(new SizeOption("L", "Size L", priceL));
+        for (ProductSize s : extraSizes) {
+            list.add(new SizeOption(s.getName(), "Size " + s.getName(), s.getPrice()));
+        }
+        list.sort(Comparator.comparing(SizeOption::price, Comparator.nullsLast(Comparator.naturalOrder())));
+        return list;
+    }
+
+    /** Giá của 1 size theo mã (không phân biệt hoa thường); rỗng nếu món không có size đó. */
+    public Optional<BigDecimal> priceOfSize(String code) {
+        if (code == null) {
+            return Optional.empty();
+        }
+        return getSizeOptions().stream()
+                .filter(o -> o.code().equalsIgnoreCase(code.trim()))
+                .map(SizeOption::price)
+                .findFirst();
+    }
+
+    public List<ProductSize> getExtraSizes() { return extraSizes; }
+    public void setExtraSizes(List<ProductSize> extraSizes) { this.extraSizes = extraSizes; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -155,4 +201,8 @@ public class Product {
 
     public boolean isAvailable() { return available; }
     public void setAvailable(boolean available) { this.available = available; }
+    public String getStockUpdatedBy() { return stockUpdatedBy; }
+    public void setStockUpdatedBy(String stockUpdatedBy) { this.stockUpdatedBy = stockUpdatedBy; }
+    public java.time.LocalDateTime getStockUpdatedAt() { return stockUpdatedAt; }
+    public void setStockUpdatedAt(java.time.LocalDateTime stockUpdatedAt) { this.stockUpdatedAt = stockUpdatedAt; }
 }

@@ -16,9 +16,9 @@
 | Vai trò | Chức năng |
 |---|---|
 | Khách vãng lai | Xem menu (kèm điểm sao của từng món), xem nhận xét, tìm kiếm, xem chi tiết & xem trước giá, đăng ký |
-| **Khách hàng** (CUSTOMER) | Tuỳ chỉnh ly (size, đường, đá, topping), "thêm nhanh" theo công thức, giỏ hàng, nhập mã khuyến mãi, đặt hàng (mang đi / giao hàng), chọn thanh toán (tiền mặt / quét QR Vietcombank / quét QR MoMo), xem lịch sử & chi tiết đơn, huỷ đơn khi chưa xác nhận, **đánh giá 1–5 sao & nhận xét món đã mua** (sửa / xoá được), sửa hồ sơ, đổi mật khẩu |
-| **Nhân viên** (STAFF) | Bán hàng tại quầy (tại quán / mang đi / giao), nhập tiền khách đưa → tính tiền thối, xử lý đơn: xác nhận → pha chế → giao → hoàn thành, huỷ đơn, xác nhận đã thanh toán, in hoá đơn |
-| **Quản lý** (ADMIN) | Tất cả quyền nhân viên + thống kê doanh thu (hôm nay, tháng, 7 ngày, top món bán chạy), CRUD danh mục / đồ uống (kèm ảnh: chọn từ máy hoặc chụp bằng webcam) / topping / mã khuyến mãi, duyệt đánh giá (ẩn / xoá nhận xét), quản lý tài khoản & phân quyền, khoá/mở tài khoản |
+| **Khách hàng** (CUSTOMER) | Tuỳ chỉnh ly (size, đường, đá, topping), "thêm nhanh" theo công thức, giỏ hàng, nhập mã khuyến mãi, đặt hàng (mang đi / giao hàng), chọn thanh toán (tiền mặt / quét QR Vietcombank / quét QR MoMo – **mã QR tự điền đúng số tiền & mã đơn**, in kèm hoá đơn), xem lịch sử & chi tiết đơn, huỷ đơn khi chưa xác nhận, **đánh giá 1–5 sao & nhận xét món đã mua** (sửa / xoá được), sửa hồ sơ, đổi mật khẩu |
+| **Nhân viên** (STAFF) | Bán hàng tại quầy (tại quán / mang đi / giao), nhập tiền khách đưa → tính tiền thối, xử lý đơn **theo ngày** (Hôm nay / Hôm qua / Hôm kia, thanh 7 ngày – ngày chưa tới bị bôi đen, tổng kết nhanh tiền mặt / chuyển khoản của ngày): xác nhận → pha chế → giao → hoàn thành, huỷ đơn, xác nhận đã thanh toán, in hoá đơn, **chấm công Vào ca / Kết ca, xem số giờ làm & lương tạm tính theo tháng** |
+| **Quản lý** (ADMIN) | Tất cả quyền nhân viên + thống kê doanh thu (hôm nay, tháng, 7 ngày, top món bán chạy), CRUD danh mục / đồ uống (kèm ảnh: chọn từ máy hoặc chụp bằng webcam) / topping / mã khuyến mãi, duyệt đánh giá (ẩn / xoá nhận xét), **quản lý khách hàng** (số đơn, tổng chi tiêu, hạng Đồng/Bạc/Vàng, lịch sử mua), **quản lý nhân viên** (lương/giờ, ca làm, sửa/thêm ca), **tổng kết hoá đơn theo ngày & chốt két** (tiền mặt phải có theo hoá đơn so với tiền đếm được → báo khớp / thiếu / thừa, tiền theo hình thức & theo nhân viên thu, cảnh báo đơn đã thu tiền rồi bị huỷ, in báo cáo), **bảng lương tháng** (tổng tiền phải trả, đã trả/chưa trả, thống kê giờ làm, xuất CSV), quản lý tài khoản & phân quyền, khoá/mở tài khoản |
 
 Phân quyền thực hiện ở `config/SecurityConfig.java` (theo URL) và trong giao diện bằng `sec:authorize`.
 
@@ -52,7 +52,10 @@ spring.datasource.password=mat_khau_postgres_cua_ban
   3. chạy web. Đóng cửa sổ đen = tắt web.
 - **IntelliJ IDEA**: File → Open → chọn thư mục project (có `pom.xml`) → chạy `TraSuaApplication`
   (khi đó tự tạo database `trasua_db` trong pgAdmin và nạp `database/trasua_db.sql` bằng Query Tool).
-- **Dòng lệnh**: `mvn spring-boot:run`
+- **VS Code**: bấm đúp **`cai_dat_vscode.bat`** (1 lần – cài *Extension Pack for Java*, *Spring Boot Extension Pack* và Maven)
+  → mở thư mục project trong VS Code → bấm **Trust** → mở `TraSuaApplication.java` bấm **Run**
+  (hoặc khung **Spring Boot Dashboard** → ▶). Nhớ tắt cửa sổ `chay_web.bat` trước để khỏi trùng cổng 8080.
+- **Dòng lệnh**: `mvnw.cmd spring-boot:run` (không cần cài Maven – `mvnw.cmd` tự tải)
 
 Mở trình duyệt: **http://localhost:8080**
 
@@ -80,6 +83,7 @@ Không có Client ID thì nút Google chỉ báo "chưa cấu hình", các chứ
 |---|---|---|
 | Quản lý | `admin` | `admin123` |
 | Nhân viên | `nhanvien` | `nv123` |
+| Nhân viên toàn thời gian | `nhanvien2` | `nv123` |
 | Khách hàng | `khachhang` | `kh123` |
 | Khách mẫu (tác giả đánh giá mẫu) | `lan.nguyen`, `minh.tran` | `kh123` |
 
@@ -119,6 +123,9 @@ uploads/products/        ảnh món do quản lý upload (tự tạo khi chạy)
 chay_web.bat             bấm đúp để chạy web trên Windows (tự tạo + nạp database)
 xuat_database.bat        xuất lại database ra database/trasua_db.sql
 day_len_github.bat       đẩy dự án lên GitHub (cần cài Git)
+cai_dat_vscode.bat       cài extension VS Code cần để chạy dự án
+lam_moi_cham_cong.bat    xoá ca làm & bảng lương để tạo lại dữ liệu chấm công mẫu (trước khi demo)
+mvnw.cmd                 chạy Maven không cần cài sẵn (mvnw.cmd spring-boot:run)
 cau_hinh_rieng.properties.example  mẫu cấu hình riêng (mật khẩu DB, Google) – không lên GitHub
 ```
 

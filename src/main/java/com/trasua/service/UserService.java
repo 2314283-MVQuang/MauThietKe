@@ -1,7 +1,9 @@
 package com.trasua.service;
 
 import com.trasua.dto.RegisterForm;
+import com.trasua.dto.StaffForm;
 import com.trasua.dto.UserForm;
+import com.trasua.entity.EmploymentType;
 import com.trasua.entity.Role;
 import com.trasua.entity.User;
 import com.trasua.repository.UserRepository;
@@ -9,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -101,6 +104,63 @@ public class UserService {
         user.setRole(form.getRole() == null ? Role.CUSTOMER : form.getRole());
         user.setEnabled(form.isEnabled());
         return userRepository.save(user);
+    }
+
+    /** Quản lý thêm / sửa NHÂN VIÊN kèm thông tin lương (vai trò luôn là STAFF). */
+    @Transactional
+    public User saveStaff(StaffForm form) {
+        User user;
+        if (form.getId() == null) {
+            String username = trim(form.getUsername());
+            if (username == null || !username.matches("[a-zA-Z0-9_.]{4,30}")) {
+                throw new IllegalArgumentException("Tên đăng nhập 4-30 ký tự, chỉ gồm chữ không dấu, số, dấu _ hoặc .");
+            }
+            if (userRepository.existsByUsername(username)) {
+                throw new IllegalArgumentException("Tên đăng nhập đã tồn tại");
+            }
+            validatePassword(form.getPassword());
+            user = new User();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(form.getPassword()));
+            user.setRole(Role.STAFF);
+        } else {
+            user = getById(form.getId());
+            if (user.getRole() != Role.STAFF) {
+                throw new IllegalArgumentException("Tài khoản này không phải nhân viên");
+            }
+            if (form.getPassword() != null && !form.getPassword().isBlank()) {
+                validatePassword(form.getPassword());
+                user.setPassword(passwordEncoder.encode(form.getPassword()));
+            }
+        }
+        if (trim(form.getFullName()) == null) {
+            throw new IllegalArgumentException("Vui lòng nhập họ tên");
+        }
+        validatePhone(form.getPhone());
+        EmploymentType type = form.getEmploymentType() == null ? EmploymentType.PART_TIME : form.getEmploymentType();
+        BigDecimal rate = form.getHourlyRate();
+        if (rate == null || rate.signum() <= 0) {
+            throw new IllegalArgumentException("Lương theo giờ phải lớn hơn 0");
+        }
+        BigDecimal base = form.getBaseSalary();
+        if (type == EmploymentType.FULL_TIME && (base == null || base.signum() <= 0)) {
+            throw new IllegalArgumentException("Nhân viên toàn thời gian cần có lương cứng/tháng");
+        }
+        if (base != null && base.signum() < 0) {
+            throw new IllegalArgumentException("Lương cứng không được âm");
+        }
+        user.setFullName(trim(form.getFullName()));
+        user.setPhone(trim(form.getPhone()));
+        user.setEmail(trim(form.getEmail()));
+        user.setEmploymentType(type);
+        user.setHourlyRate(rate);
+        user.setBaseSalary(type == EmploymentType.FULL_TIME ? base : null);
+        user.setEnabled(form.isEnabled());
+        return userRepository.save(user);
+    }
+
+    public List<User> findByRole(Role role) {
+        return userRepository.findByRoleOrderByFullNameAsc(role);
     }
 
     @Transactional

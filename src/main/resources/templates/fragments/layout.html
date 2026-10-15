@@ -6,14 +6,14 @@
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${title} + ' | Trà Sữa DLU'">Trà Sữa DLU</title>
+    <title th:text="${title} + ' | Trà Sữa Thôi'">Trà Sữa Thôi</title>
     <!-- SEO & chia sẻ: chỉ hiện khi trang khai báo pageDescription (VD trang chủ, qua th:with trên thẻ html) -->
     <th:block th:if="${pageDescription != null}">
         <meta name="description" th:content="${pageDescription}">
         <meta property="og:type" content="website">
-        <meta property="og:site_name" content="Trà Sữa DLU">
+        <meta property="og:site_name" content="Trà Sữa Thôi">
         <meta property="og:locale" content="vi_VN">
-        <meta property="og:title" th:content="${title} + ' | Trà Sữa DLU'">
+        <meta property="og:title" th:content="${title} + ' | Trà Sữa Thôi'">
         <meta property="og:description" th:content="${pageDescription}">
         <meta property="og:image" th:if="${ogImage != null}" th:content="${ogImage}">
     </th:block>
@@ -29,7 +29,10 @@
 <!-- ===================== NAVBAR ===================== -->
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light navbar-ts">
     <div class="container">
-        <a class="navbar-brand" th:href="@{/}">🧋 Trà Sữa DLU</a>
+        <a class="navbar-brand brand-anim" th:href="@{/}" aria-label="Trà Sữa Thôi - trang chủ">
+            <span class="brand-cup" aria-hidden="true">🧋<i class="brand-pearl p1"></i><i class="brand-pearl p2"></i><i class="brand-pearl p3"></i></span>
+            <span class="brand-text">Trà Sữa <span class="brand-accent">Thôi</span></span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -42,9 +45,19 @@
                 <li class="nav-item" sec:authorize="hasRole('CUSTOMER')">
                     <a class="nav-link" th:href="@{/orders/my}"><i class="bi bi-receipt"></i> Đơn của tôi</a>
                 </li>
+                <li class="nav-item" sec:authorize="hasRole('CUSTOMER')">
+                    <a class="nav-link" th:href="@{/feedback}"><i class="bi bi-chat-heart"></i> Góp ý</a>
+                </li>
 
                 <li class="nav-item" sec:authorize="hasAnyRole('STAFF','ADMIN')">
                     <a class="nav-link" th:href="@{/staff/orders}"><i class="bi bi-list-check"></i> Xử lý đơn</a>
+                </li>
+
+                <li class="nav-item" sec:authorize="hasAnyRole('STAFF','ADMIN')">
+                    <a class="nav-link" th:href="@{/staff/menu}"><i class="bi bi-ui-checks-grid"></i> Còn/hết món</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('STAFF')">
+                    <a class="nav-link" th:href="@{/staff/timesheet}"><i class="bi bi-clock-history"></i> Chấm công</a>
                 </li>
 
                 <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
@@ -53,14 +66,19 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" th:href="@{/admin}"><i class="bi bi-graph-up"></i> Thống kê</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/daily-report}"><i class="bi bi-calculator"></i> Tổng kết ngày &amp; chốt két</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" th:href="@{/admin/products}"><i class="bi bi-cup-hot"></i> Đồ uống</a></li>
                         <li><a class="dropdown-item" th:href="@{/admin/categories}"><i class="bi bi-tags"></i> Danh mục</a></li>
                         <li><a class="dropdown-item" th:href="@{/admin/toppings}"><i class="bi bi-circle"></i> Topping</a></li>
                         <li><a class="dropdown-item" th:href="@{/admin/promotions}"><i class="bi bi-ticket-perforated"></i> Khuyến mãi</a></li>
                         <li><a class="dropdown-item" th:href="@{/admin/reviews}"><i class="bi bi-star"></i> Đánh giá</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/feedback}"><i class="bi bi-chat-heart"></i> Góp ý món</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" th:href="@{/admin/users}"><i class="bi bi-people"></i> Tài khoản</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/customers}"><i class="bi bi-people"></i> Khách hàng</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/staff}"><i class="bi bi-person-badge"></i> Nhân viên</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/payroll}"><i class="bi bi-cash-stack"></i> Bảng lương</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/users}"><i class="bi bi-shield-lock"></i> Tài khoản &amp; phân quyền</a></li>
                     </ul>
                 </li>
             </ul>
@@ -122,17 +140,22 @@
     <footer class="pt-5 pb-4 mt-5">
         <div class="container">
             <div class="row g-4">
-                <div class="col-md-5">
-                    <div class="display-font fw-bold fs-3 text-white">🧋 Trà Sữa DLU</div>
+                <div class="col-md-4">
+                    <div class="display-font fw-bold fs-3 text-white"><span class="brand-cup footer-cup" aria-hidden="true">🧋</span> Trà Sữa Thôi</div>
                     <p class="mb-0" style="max-width: 36ch">Trà sữa, trà trái cây và cà phê pha mới mỗi ly, nguyên liệu tươi từ Đà Lạt.</p>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="fw-semibold text-white mb-2">Ghé quán</div>
                     <div>01 Phù Đổng Thiên Vương<br>Phường 8, Đà Lạt</div>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-6 col-md-2">
                     <div class="fw-semibold text-white mb-2">Giờ mở cửa</div>
-                    <div>7:00 – 22:00 mỗi ngày<br>Giao hàng trong bán kính 5 km</div>
+                    <div>7:00 – 22:00 mỗi ngày<br>Giao trong 5 km</div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="fw-semibold text-white mb-2">Liên hệ</div>
+                    <div><a class="footer-link" th:href="'tel:' + ${shopPhone}"><i class="bi bi-telephone"></i> <span th:text="${shopPhone}">0333647940</span></a></div>
+                    <div><a class="footer-link text-break" th:href="'mailto:' + ${shopEmail}"><i class="bi bi-envelope"></i> <span th:text="${shopEmail}">mail</span></a></div>
                 </div>
             </div>
             <hr style="border-color: rgba(255,255,255,.18)">

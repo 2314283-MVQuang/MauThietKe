@@ -1,6 +1,5 @@
 package com.trasua.controller;
 
-import com.trasua.entity.DrinkSize;
 import com.trasua.entity.OrderItem;
 import com.trasua.entity.Product;
 import com.trasua.entity.Role;
@@ -82,7 +81,8 @@ public class MenuController {
                        Model model) {
         model.addAttribute("categories", catalogService.allCategories());
         // Luôn trả đủ món: tab danh mục & ô tìm kiếm lọc ngay trên trình duyệt (có hiệu ứng)
-        List<Product> products = catalogService.menuProducts(null, null);
+        // Món nhân viên đánh dấu "hết" vẫn hiện nhưng mờ + nhãn "Tạm hết"
+        List<Product> products = catalogService.menuProductsWithSoldOut();
         model.addAttribute("products", products);
         // ---- Trang chủ: món signature, ảnh hero, dải hương vị, nhận xét nổi bật ----
         List<Product> signatures = catalogService.signatureProducts();
@@ -111,7 +111,6 @@ public class MenuController {
         model.addAttribute("isCustomer", user != null && user.getRole() == Role.CUSTOMER);
         model.addAttribute("toppings", catalogService.availableToppings());
         model.addAttribute("levels", OrderItemBuilder.LEVELS);
-        model.addAttribute("sizes", DrinkSize.values());
         return "menu/product";
     }
 
@@ -122,7 +121,7 @@ public class MenuController {
      */
     @PostMapping("/cart/add")
     public String addToCart(@RequestParam("productId") Long productId,
-                            @RequestParam(value = "size", defaultValue = "M") DrinkSize size,
+                            @RequestParam(value = "size", defaultValue = "M") String size,
                             @RequestParam(value = "sugar", defaultValue = "70") int sugar,
                             @RequestParam(value = "ice", defaultValue = "70") int ice,
                             @RequestParam(value = "toppingIds", required = false) List<Long> toppingIds,

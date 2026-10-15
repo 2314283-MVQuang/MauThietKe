@@ -25,9 +25,19 @@ public class ToppingDecorator extends BeverageDecorator {
         this.toppingPrice = toppingPrice == null ? BigDecimal.ZERO : toppingPrice;
     }
 
+    /**
+     * Nhiều phần cùng một topping = nhiều lớp ToppingDecorator cùng tên bọc liền nhau.
+     * Lớp ngoài cùng gộp lại để mô tả gọn: "Trà sữa (L) + Trân châu đen x2".
+     */
     @Override
     public String getDescription() {
-        return wrapped.getDescription() + " + " + toppingName;
+        int portions = 1;
+        Beverage inner = wrapped;
+        while (inner instanceof ToppingDecorator same && same.toppingName.equals(toppingName)) {
+            portions++;
+            inner = same.wrapped;
+        }
+        return inner.getDescription() + " + " + toppingName + (portions > 1 ? " x" + portions : "");
     }
 
     @Override

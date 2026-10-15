@@ -661,7 +661,6 @@ main { animation: page-in .45s cubic-bezier(.2, .8, .2, 1) both; }
 .contact-indent { display: inline-block; margin-left: 1.45em; }
 .contact-link { color: var(--ts-milk); font-weight: 600; text-underline-offset: 3px; }
 .contact-link:hover, .contact-link:focus { color: var(--honey-soft); }
-.contact-todo { color: var(--mint); font-style: italic; border-bottom: 1px dashed currentColor; }
 
 /* Nút "Đặt món ngay" cố định – chỉ trên điện thoại */
 .landing-fab { display: none; }
@@ -763,3 +762,170 @@ main { animation: page-in .45s cubic-bezier(.2, .8, .2, 1) both; }
 @media (prefers-reduced-motion: reduce) {
     .auth-brand .pearls { display: none; }
 }
+
+/* ===== CHẤM CÔNG & LƯƠNG (Tuấn) ===== */
+.btn-berry { background: var(--berry); border-color: var(--berry); color: #fff; font-weight: 600; }
+.btn-berry:hover, .btn-berry:focus { background: #cf3457; border-color: #cf3457; color: #fff; }
+.text-peach { color: #E2662F !important; }
+.badge-soft { background: var(--mint-2); color: var(--leaf-dark); font-weight: 600; }
+.clock-card { border: 2px dashed var(--mint-2); background: #fff; }
+.clock-card.is-working { border: 2px solid var(--leaf); background: linear-gradient(120deg, #fff 55%, var(--mint-2)); }
+.clock-state { font-weight: 600; font-size: 1.05rem; }
+.clock-elapsed { font-family: var(--font-display); font-size: 2rem; color: var(--leaf); line-height: 1.2; }
+.live-dot { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; background: var(--leaf);
+            margin-right: .3rem; animation: livePulse 1.6s ease-in-out infinite; }
+@keyframes livePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(46,125,87,.55); } 50% { box-shadow: 0 0 0 .45rem rgba(46,125,87,0); } }
+.payroll-lines li { padding: .2rem 0; font-size: .92rem; }
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+
+/* ===== QUẢN LÝ KHÁCH HÀNG & NHÂN VIÊN (Thuận) ===== */
+.tier-badge { font-weight: 700; letter-spacing: .02em; }
+.tier-DONG { background: #F3E2D3; color: #8A5A32; }
+.tier-BAC  { background: #E6EAEE; color: #4F5B66; }
+.tier-VANG { background: var(--honey-soft); color: #9A6A00; }
+.admin-tabs .nav-link { color: var(--ink-soft); font-weight: 600; }
+.admin-tabs .nav-link.active { color: var(--leaf); border-bottom: 3px solid var(--leaf); background: none; }
+.hours-chart .bar-label { width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hours-chart .bar-fill { background: var(--leaf); }
+.payroll-total { background: linear-gradient(120deg, var(--leaf), #3FA172); color: #fff; border: 0; }
+.payroll-total .stat-label, .payroll-total .stat-value { color: #fff !important; }
+.avatar-circle { width: 2.2rem; height: 2.2rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+                 background: var(--mint-2); color: var(--leaf-dark); font-weight: 700; flex-shrink: 0; }
+
+/* ===== XỬ LÝ ĐƠN THEO NGÀY & TỔNG KẾT NGÀY ===== */
+.day-strip { display: flex; align-items: stretch; gap: .4rem; overflow-x: auto; padding-bottom: .15rem; }
+.day-chip, .day-nav {
+    flex: 1 0 4.6rem; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-radius: .8rem; padding: .4rem .3rem; text-decoration: none; line-height: 1.15;
+    background: var(--mint); color: var(--ink); border: 1.5px solid var(--mint-2); transition: transform .15s, background .15s;
+}
+.day-nav { flex: 0 0 2.2rem; color: var(--leaf); font-size: 1.1rem; }
+.day-nav.disabled { color: #b8c4bd; background: #f3f5f4; }
+a.day-chip:hover, a.day-nav:hover { background: var(--mint-2); transform: translateY(-1px); color: var(--ink); }
+.day-chip .dow { font-weight: 700; font-size: .85rem; }
+.day-chip .dm { font-size: .8rem; color: var(--ink-soft); }
+.day-chip .cnt { font-size: .72rem; color: var(--ink-soft); margin-top: .1rem; }
+.day-chip.is-today { border-color: var(--peach); }
+.day-chip.is-selected { background: var(--leaf); border-color: var(--leaf); color: #fff; }
+.day-chip.is-selected .dm, .day-chip.is-selected .cnt { color: rgba(255,255,255,.85); }
+/* Ngày chưa tới: bôi đen, không bấm được */
+.day-chip.is-future { background: #2f3a35; border-color: #2f3a35; color: #8d9a93; cursor: not-allowed; opacity: .85; }
+.day-chip.is-future .dm, .day-chip.is-future .cnt { color: #6f7c75; }
+.closing-card.is-ok { border: 2px solid var(--leaf); }
+.closing-card.is-bad { border: 2px solid var(--berry); }
+.print-only { display: none; }
+@media print {
+    .daily-report-page nav, .daily-report-page .no-print, .daily-report-page footer, .daily-report-page .toast-stack { display: none !important; }
+    .daily-report-page .print-only { display: block; }
+    .daily-report-page .card { box-shadow: none !important; break-inside: avoid; }
+}
+
+/* ===== QR THANH TOÁN KÈM SỐ TIỀN ===== */
+.pay-qr img { image-rendering: pixelated; background: #fff; }
+.pay-qr-amount { font-family: var(--font-display); font-size: 1.6rem; color: #E2662F; font-weight: 800; margin-top: .3rem; }
+
+/* ===== CÒN / HẾT MÓN ===== */
+.stock-card { display: flex; align-items: center; gap: .75rem; padding: .55rem .7rem; border-radius: 1rem; border: 2px solid var(--mint-2);
+              background: #fff; color: var(--ink); transition: transform .12s, border-color .15s, background .15s; }
+.stock-card:hover { transform: translateY(-1px); }
+.stock-card.is-on { border-color: #bfe3cd; }
+.stock-card.is-off { background: #f1f1f1; border-color: #d9d9d9; }
+.stock-card.is-off .stock-thumb img { filter: grayscale(1); opacity: .55; }
+.stock-card.is-off .fw-semibold { text-decoration: line-through; color: #777; }
+.stock-thumb { width: 3rem; height: 3rem; border-radius: .7rem; overflow: hidden; flex-shrink: 0; background: var(--mint);
+               display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+.stock-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.stock-state { font-weight: 800; padding: .25rem .7rem; border-radius: 999px; font-size: .85rem; }
+.is-on .stock-state { background: var(--leaf); color: #fff; }
+.is-off .stock-state { background: var(--berry); color: #fff; }
+.stock-pill { border-radius: 999px; font-weight: 600; border: 2px solid; }
+.stock-pill.is-on { border-color: var(--leaf); color: var(--leaf); background: #fff; }
+.stock-pill.is-off { border-color: #ccc; color: #888; background: #f1f1f1; text-decoration: line-through; }
+/* Menu khách: món tạm hết */
+.drink-card.sold-out .drink-thumb img { filter: grayscale(1); opacity: .6; }
+.drink-card.sold-out .card-title, .drink-card.sold-out .drink-price { color: #8a8a8a !important; }
+.chip-soldout { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-8deg);
+                background: rgba(232,71,106,.92); color: #fff; font-weight: 800; padding: .3rem .9rem; border-radius: .6rem;
+                letter-spacing: .03em; box-shadow: 0 4px 14px rgba(0,0,0,.18); font-size: 1rem; line-height: 1.3; }
+
+/* ===== SỐ PHẦN TOPPING ===== */
+.topping-row { display: flex; align-items: center; gap: .6rem; padding: .45rem .7rem; border: 1.5px solid var(--mint-2);
+               border-radius: .9rem; background: #fff; transition: border-color .15s, background .15s; }
+.topping-row.active { border-color: var(--leaf); background: var(--mint); }
+.qty-stepper { display: inline-flex; align-items: center; gap: .35rem; }
+.qty-btn { width: 2rem; height: 2rem; border-radius: 50%; border: 1.5px solid var(--leaf); background: #fff; color: var(--leaf);
+           font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+.qty-btn:hover:not(:disabled) { background: var(--leaf); color: #fff; }
+.qty-btn:disabled { border-color: #ccd5cf; color: #b5c0b9; }
+.qty-val { min-width: 1.2rem; text-align: center; font-weight: 700; }
+
+/* ===== GÓP Ý MÓN & LIÊN HỆ ===== */
+.feedback-card.is-new { border-left: 4px solid var(--honey); }
+.shop-reply { background: var(--mint); border-left: 3px solid var(--leaf); border-radius: .6rem; padding: .5rem .75rem; }
+.contact-card a { color: var(--ink); }
+.contact-icon { width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--mint-2); color: var(--leaf);
+                display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.footer-link { color: inherit; text-decoration: none; }
+.footer-link:hover { color: #fff; text-decoration: underline; }
+
+/* ===== LOGO "TRÀ SỮA THÔI": ly lắc lư + chữ chuyển màu ===== */
+.brand-anim { display: inline-flex; align-items: center; gap: .45rem; text-decoration: none; }
+.brand-cup { position: relative; display: inline-block; font-size: 1.6rem; line-height: 1;
+             transform-origin: 50% 90%; animation: cupSwing 2.6s ease-in-out infinite; }
+.brand-text {
+    font-weight: 800; letter-spacing: -.2px;
+    background: linear-gradient(90deg, var(--leaf) 0%, #3FA172 30%, var(--peach) 50%, var(--berry) 65%, var(--leaf) 100%);
+    background-size: 220% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: brandShimmer 6s linear infinite;
+}
+/* chữ "Thôi" tự tô màu riêng (khi xoay, phần nền gradient của cha không vẽ lên được) */
+.brand-accent { display: inline-block; transform-origin: 50% 80%; animation: wordTilt 2.6s ease-in-out infinite;
+                background: linear-gradient(90deg, var(--peach), var(--berry)); -webkit-background-clip: text; background-clip: text;
+                color: transparent; -webkit-text-fill-color: transparent; }
+/* trân châu nhỏ nổi lên từ ly */
+.brand-pearl { position: absolute; left: 55%; bottom: 80%; width: .32rem; height: .32rem; border-radius: 50%;
+               background: #6b3f2a; opacity: 0; animation: pearlUp 2.6s ease-in infinite; }
+.brand-pearl.p2 { left: 35%; animation-delay: .9s; width: .26rem; height: .26rem; }
+.brand-pearl.p3 { left: 70%; animation-delay: 1.7s; width: .22rem; height: .22rem; }
+.brand-anim:hover .brand-cup { animation: cupShake .5s ease-in-out infinite; }
+.brand-anim:hover .brand-text { animation-duration: 2s; }
+.footer-cup { font-size: 1.4rem; vertical-align: -2px; }
+
+@keyframes cupSwing {
+    0%, 100% { transform: rotate(-12deg); }
+    50%      { transform: rotate(12deg); }
+}
+@keyframes cupShake {
+    0%, 100% { transform: rotate(0) scale(1.12); }
+    25%      { transform: rotate(-18deg) scale(1.12); }
+    75%      { transform: rotate(18deg) scale(1.12); }
+}
+@keyframes wordTilt {
+    0%, 100% { transform: rotate(-4deg); }
+    50%      { transform: rotate(4deg) translateY(-1px); }
+}
+@keyframes brandShimmer { to { background-position: 220% center; } }
+@keyframes pearlUp {
+    0%   { opacity: 0; transform: translate(0, 0) scale(.6); }
+    20%  { opacity: .9; }
+    100% { opacity: 0; transform: translate(4px, -18px) scale(1); }
+}
+/* Máy bật "giảm chuyển động" (Windows tắt Animation effects): các hiệu ứng khác của web tắt,
+   riêng logo vẫn lắc nhẹ theo yêu cầu (chậm hơn, không có trân châu bay) */
+@media (prefers-reduced-motion: reduce) {
+    .brand-anim .brand-cup { animation: cupSwing 3.2s ease-in-out infinite !important; }
+    .brand-anim .brand-text { animation: brandShimmer 8s linear infinite !important; }
+    .brand-anim .brand-accent { animation: wordTilt 3.2s ease-in-out infinite !important; }
+    .brand-pearl { display: none; }
+}
+
+/* ===== TOP BÁN CHẠY (thống kê theo ngày / tuần / tháng) ===== */
+.best-list { list-style: none; }
+.best-row { display: flex; align-items: center; gap: .65rem; padding: .35rem 0; }
+.best-rank { width: 1.7rem; height: 1.7rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+             font-weight: 800; font-size: .85rem; background: var(--mint-2); color: var(--leaf-dark); flex-shrink: 0; }
+.best-rank.rank-1 { background: var(--honey); color: #5a3d00; }
+.best-rank.rank-2 { background: #d9dee3; color: #3f4a54; }
+.best-rank.rank-3 { background: #f0c9a5; color: #7a4a1f; }
+.best-bar { height: 6px; background: var(--mint-2); border-radius: 4px; margin-top: .25rem; overflow: hidden; }
+.best-bar > div { height: 100%; background: linear-gradient(90deg, var(--leaf), var(--peach)); border-radius: 4px; }

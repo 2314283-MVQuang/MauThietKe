@@ -130,12 +130,13 @@
                         <label class="form-label">Tiền khách đưa (để trống nếu thu sau)</label>
                         <input th:field="*{cashReceived}" type="number" min="0" step="1000" class="form-control">
                     </div>
-                    <!-- Mã QR do từng PaymentStrategy cung cấp (getQrImageUrl) -->
-                    <div id="qrBox" class="text-center border rounded-3 p-2 mb-2" style="display:none">
-                        <img id="qrImg" src="" alt="Mã QR thanh toán" class="img-fluid" style="max-height:340px">
-                        <div class="small text-muted mt-1">
-                            Quét mã để thanh toán <strong th:text="${#numbers.formatDecimal(price.total(), 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong>.
-                            Nội dung chuyển khoản: <strong>mã đơn</strong> (hiện sau khi đặt hàng).
+                    <!-- QR thanh toán được tạo SAU khi đặt hàng: đúng số tiền + nội dung = mã đơn (PaymentStrategy.buildQrPayload) -->
+                    <div id="qrBox" class="d-flex align-items-center gap-3 border rounded-3 p-2 mb-2" style="display:none">
+                        <i class="bi bi-qr-code-scan fs-1 text-ts"></i>
+                        <div class="small">
+                            Bấm <strong>Đặt hàng</strong> để hiện mã QR thanh toán
+                            <strong th:text="${#numbers.formatDecimal(price.total(), 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong>
+                            – số tiền và nội dung (mã đơn) đã điền sẵn, có thể in kèm hoá đơn.
                         </div>
                     </div>
                     <p class="small text-muted" th:unless="${atCounter}">
@@ -163,7 +164,6 @@
         const addressGroup = document.getElementById('addressGroup');
         const cashGroup = document.getElementById('cashGroup');
         const qrBox = document.getElementById('qrBox');
-        const qrImg = document.getElementById('qrImg');
         const qrImages = /*[[${paymentQrs}]]*/ {};
 
         function toggle() {
@@ -175,8 +175,7 @@
             }
             if (payment && qrBox) {
                 const qr = qrImages[payment.value];
-                qrBox.style.display = qr ? '' : 'none';
-                if (qr) qrImg.src = qr;
+                qrBox.style.setProperty('display', qr ? 'flex' : 'none', 'important');
             }
         }
         if (orderType) orderType.addEventListener('change', toggle);

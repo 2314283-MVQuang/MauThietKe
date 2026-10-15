@@ -82,6 +82,19 @@ public class StatisticsService {
                 .toList();
     }
 
+    /** Top bán chạy trong khoảng thời gian (from, to = null -> toàn thời gian). */
+    public List<BestSeller> bestSellers(int limit, LocalDateTime from, LocalDateTime to) {
+        List<Object[]> rows = (from == null || to == null)
+                ? orderRepository.findBestSellers(OrderStatus.HOAN_THANH)
+                : orderRepository.findBestSellersBetween(OrderStatus.HOAN_THANH, from, to);
+        return rows.stream()
+                .limit(limit)
+                .map(row -> new BestSeller((String) row[0],
+                        ((Number) row[1]).longValue(),
+                        row[2] == null ? BigDecimal.ZERO : new BigDecimal(row[2].toString())))
+                .toList();
+    }
+
     public Map<OrderStatus, Long> countByStatus() {
         Map<OrderStatus, Long> map = new LinkedHashMap<>();
         for (OrderStatus status : OrderStatus.values()) {

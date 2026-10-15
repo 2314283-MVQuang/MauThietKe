@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Còn / hết món')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h3 class="text-ts mb-0"><i class="bi bi-ui-checks-grid"></i> Còn / hết món</h3>
+            <div class="small text-muted">Bấm vào món để đổi trạng thái. Món hết: khách vẫn thấy nhưng không đặt được.</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="badge fs-6" th:classappend="${soldOutCount > 0} ? 'bg-danger' : 'bg-success'"
+                  th:text="${soldOutCount > 0} ? ${soldOutCount} + ' / ' + ${productCount} + ' món đang hết' : 'Đủ món'">0 món hết</span>
+            <form th:if="${soldOutCount > 0}" th:action="@{/staff/menu/reopen-all}" method="post"
+                  onsubmit="return confirm('Mở bán lại tất cả món đang hết?');">
+                <button class="btn btn-outline-ts"><i class="bi bi-arrow-repeat"></i> Mở bán lại tất cả</button>
+            </form>
+        </div>
+    </div>
+
+    <input type="search" id="stockSearch" class="form-control mb-3" placeholder="Tìm món nhanh..." aria-label="Tìm món">
+
+    <section th:each="e : ${byCategory}" class="mb-4 stock-section">
+        <h5 class="mb-2" th:text="${e.key.name}">Trà sữa</h5>
+        <div class="row g-2">
+            <div class="col-12 col-sm-6 col-lg-4 stock-item" th:each="p : ${e.value}" th:id="'p' + ${p.id}"
+                 th:attr="data-name=${p.name}">
+                <form th:action="@{/staff/menu/products/{id}(id=${p.id})}" method="post">
+                    <input type="hidden" name="available" th:value="${!p.available}">
+                    <button type="submit" class="stock-card w-100" th:classappend="${p.available} ? 'is-on' : 'is-off'"
+                            th:title="${p.available} ? 'Bấm để đánh dấu HẾT' : 'Bấm để mở bán lại'">
+                        <span class="stock-thumb">
+                            <img th:if="${p.imageUrl}" th:src="${p.imageUrl}" alt="">
+                            <span th:unless="${p.imageUrl}">🧋</span>
+                        </span>
+                        <span class="flex-grow-1 text-start">
+                            <span class="d-block fw-semibold" th:text="${p.name}">Tên món</span>
+                            <span class="d-block small text-muted" th:if="${p.stockUpdatedAt != null}"
+                                  th:text="(${p.available} ? 'Mở lại ' : 'Hết từ ') + ${#temporals.format(p.stockUpdatedAt, 'HH:mm dd/MM')} + ' · ' + ${p.stockUpdatedBy}"></span>
+                        </span>
+                        <span class="stock-state" th:text="${p.available} ? 'Còn' : 'Hết'">Còn</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section id="toppings" class="mb-4">
+        <h5 class="mb-2">Topping</h5>
+        <div class="d-flex flex-wrap gap-2">
+            <form th:each="t : ${toppings}" th:action="@{/staff/menu/toppings/{id}(id=${t.id})}" method="post">
+                <input type="hidden" name="available" th:value="${!t.available}">
+                <button class="btn stock-pill" th:classappend="${t.available} ? 'is-on' : 'is-off'">
+                    <i class="bi" th:classappend="${t.available} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                    <span th:text="${t.name}">Trân châu</span>
+                </button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script>
+    (function () {
+        const input = document.getElementById('stockSearch');
+        const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+        input.addEventListener('input', function () {
+            const q = norm(input.value.trim());
+            document.querySelectorAll('.stock-item').forEach(el => {
+                el.hidden = q && !norm(el.dataset.name).includes(q);
+            });
+            document.querySelectorAll('.stock-section').forEach(sec => {
+                sec.hidden = !sec.querySelector('.stock-item:not([hidden])');
+            });
+        });
+    })();
+</script>
+</body>
+</html>

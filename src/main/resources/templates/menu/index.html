@@ -90,7 +90,7 @@
     <section class="section why-section" id="gioi-thieu" aria-labelledby="gioi-thieu-title">
         <div class="container">
             <div class="reveal">
-                <h2 class="section-title" id="gioi-thieu-title">Vì sao chọn Trà Sữa DLU?</h2>
+                <h2 class="section-title" id="gioi-thieu-title">Vì sao chọn Trà Sữa Thôi?</h2>
                 <p class="section-sub">Bốn điều quán giữ ở mọi ly, từ nguyên liệu tới lúc bạn thanh toán.</p>
             </div>
             <div class="why-grid mt-4">
@@ -102,7 +102,7 @@
                 <article class="why-card reveal reveal-delay-1">
                     <span class="why-icon tone-peach" aria-hidden="true"><i class="bi bi-sliders"></i></span>
                     <h3>Tuỳ chỉnh từng ly</h3>
-                    <p>Size M hoặc L, đường và đá từ 0% đến 100%, thêm tối đa 5 topping.</p>
+                    <p>Size M, L hoặc size riêng của từng món, đường và đá từ 0% đến 100%, tối đa 5 phần topping (mỗi loại đến x3).</p>
                 </article>
                 <article class="why-card reveal reveal-delay-2">
                     <span class="why-icon tone-berry" aria-hidden="true"><i class="bi bi-cup-hot"></i></span>
@@ -135,7 +135,7 @@
                 <div class="step reveal reveal-delay-1">
                     <div class="num">2</div>
                     <h3>Tuỳ chỉnh và xem giá từng lớp</h3>
-                    <p>Chọn size, đường, đá, tối đa 5 topping – giá cộng theo từng lớp và hiện ngay bên cạnh.</p>
+                    <p>Chọn size, đường, đá, topping (thêm 2–3 phần trân châu cũng được) – giá cộng theo từng lớp và hiện ngay bên cạnh.</p>
                     <span class="tag">Decorator</span>
                 </div>
                 <div class="step reveal reveal-delay-2">
@@ -238,7 +238,7 @@
                      th:attr="data-cat=${p.category.id},data-name=${p.name}"
                      th:hidden="${(selectedCategory != null and p.category.id != selectedCategory)
                                  or (q != null and !#strings.isEmpty(q) and !#strings.containsIgnoreCase(p.name, q))}">
-                    <article class="card drink-card h-100 reveal" th:classappend="'reveal-delay-' + ${st.index % 4}"
+                    <article class="card drink-card h-100 reveal" th:classappend="'reveal-delay-' + ${st.index % 4} + (${p.available} ? '' : ' sold-out')"
                              th:style="'view-transition-name: card-' + ${p.id}">
                         <a th:href="@{/products/{id}(id=${p.id})}" class="drink-thumb text-decoration-none"
                            th:classappend="${p.imageUrl} ? 'photo-frame'">
@@ -247,6 +247,7 @@
                             <span th:unless="${p.imageUrl}">🧋</span>
                             <span class="chip-cat" th:text="${p.category.name}">Trà sữa</span>
                             <span class="chip-sig" th:if="${p.signature}"><i class="bi bi-stars"></i> Signature</span>
+                            <span class="chip-soldout" th:unless="${p.available}">Tạm hết</span>
                         </a>
                         <div class="card-body d-flex flex-column">
                             <h3 class="card-title mb-1">
@@ -260,10 +261,14 @@
                                 <div>
                                     <div class="drink-price" th:text="${#numbers.formatDecimal(p.priceM, 1, 'POINT', 0, 'COMMA')} + 'đ'">25.000đ</div>
                                     <small class="text-muted" th:text="'Size L ' + ${#numbers.formatDecimal(p.priceL, 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
+                                    <small class="text-muted d-block" th:unless="${#lists.isEmpty(p.extraSizes)}"
+                                           th:text="'+ ' + ${#lists.size(p.extraSizes)} + ' size khác'"></small>
                                 </div>
 
                                 <!-- Thêm nhanh theo công thức của DrinkDirector (Builder Pattern) -->
-                                <div class="dropdown quick-add" sec:authorize="isAuthenticated()">
+                                <span th:unless="${p.available}" class="btn btn-round px-3 btn-secondary disabled" title="Tạm hết">
+                                    <i class="bi bi-slash-circle"></i></span>
+                                <div class="dropdown quick-add" sec:authorize="isAuthenticated()" th:if="${p.available}">
                                     <button class="btn btn-ts btn-round px-3" type="button" data-bs-toggle="dropdown"
                                             aria-expanded="false" th:attr="aria-label='Thêm nhanh ' + ${p.name}">
                                         <i class="bi bi-plus-lg"></i>
@@ -375,7 +380,7 @@
                             <div id="faq-huy-don" class="accordion-collapse collapse" data-bs-parent="#faqList">
                                 <div class="accordion-body">
                                     Được, khi đơn còn ở trạng thái <strong>Chờ xác nhận</strong>: vào <strong>Đơn của tôi</strong>, mở đơn và bấm
-                                    <strong>Huỷ đơn</strong>. Khi quán đã xác nhận, bạn không tự huỷ được nữa – vui lòng liên hệ quán.
+                                    <strong>Huỷ đơn</strong>. Khi quán đã xác nhận, bạn không tự huỷ được nữa – vui lòng gọi <a th:href="'tel:' + ${shopPhone}" th:text="${shopPhone}">0333647940</a>.
                                 </div>
                             </div>
                         </div>
@@ -429,9 +434,13 @@
                 </div>
                 <div>
                     <h3 class="contact-head">Liên hệ</h3>
-                    <!-- CHỖ GIỮ CHỖ: footer chưa có số điện thoại / email của quán. Có thông tin thật thì thay chữ "đang cập nhật". -->
-                    <p class="mb-2"><i class="bi bi-telephone-fill" aria-hidden="true"></i> Điện thoại: <span class="contact-todo">đang cập nhật</span></p>
-                    <p class="mb-2"><i class="bi bi-envelope-fill" aria-hidden="true"></i> Email: <span class="contact-todo">đang cập nhật</span></p>
+                    <!-- Số điện thoại / email lấy từ app.shop.phone / app.shop.email (GlobalModelAdvice), giống footer -->
+                    <p class="mb-2"><i class="bi bi-telephone-fill" aria-hidden="true"></i> Điện thoại:
+                        <a class="contact-link" th:href="'tel:' + ${shopPhone}" th:text="${shopPhone}">0333647940</a></p>
+                    <p class="mb-2"><i class="bi bi-envelope-fill" aria-hidden="true"></i> Email:
+                        <a class="contact-link text-break" th:href="'mailto:' + ${shopEmail}" th:text="${shopEmail}">2314283@dlu.edu.vn</a></p>
+                    <p class="mb-2"><i class="bi bi-chat-heart-fill" aria-hidden="true"></i>
+                        <a class="contact-link" th:href="@{/feedback}">Góp ý món để quán cải thiện</a></p>
                     <p class="mb-0"><i class="bi bi-truck" aria-hidden="true"></i> Giao hàng trong bán kính 5 km</p>
                 </div>
             </div>

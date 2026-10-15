@@ -13,6 +13,7 @@ import com.trasua.web.Cart;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -35,12 +36,14 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final PromotionService promotionService;
     private final PaymentProcessor paymentProcessor;
+    private final com.trasua.repository.ProductRepository productRepository;
 
     public OrderService(OrderRepository orderRepository, PromotionService promotionService,
-                        PaymentProcessor paymentProcessor) {
+                        PaymentProcessor paymentProcessor, com.trasua.repository.ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.promotionService = promotionService;
         this.paymentProcessor = paymentProcessor;
+        this.productRepository = productRepository;
     }
 
     /** Xem trước tiền của giỏ hàng (tạm tính, giảm giá, tổng) - dùng ở trang giỏ hàng. */
@@ -55,6 +58,14 @@ public class OrderService {
     public Order checkout(Cart cart, CheckoutForm form, User currentUser) {
         if (cart.isEmpty()) {
             throw new IllegalStateException("Giỏ hàng đang trống");
+        }
+        // Món vừa được nhân viên đánh dấu HẾT sau khi khách bỏ vào giỏ -> không cho đặt
+        for (OrderItem item : cart.getItems()) {
+            if (item.getProductId() != null && productRepository.findById(item.getProductId())
+                    .map(p -> !p.isAvailable()).orElse(false)) {
+                throw new IllegalStateException("Món \"" + item.getProductName()
+                        + "\" vừa hết - vui lòng xoá khỏi giỏ hoặc chọn món khác");
+            }
         }
 
         // 1) STRATEGY: chọn chiến lược giảm giá theo mã khuyến mãi
@@ -96,6 +107,9 @@ public class OrderService {
         PaymentResult payment = paymentProcessor.process(order.getPaymentMethod(), paymentRequest);
         order.setPaymentStatus(payment.paid() ? PaymentStatus.DA_THANH_TOAN : PaymentStatus.CHUA_THANH_TOAN);
         order.setPaymentInfo(payment.info());
+        if (payment.paid()) {
+            order.setPaidAt(LocalDateTime.now());   // thu ngay tại quầy -> người thu = nhân viên tạo đơn
+        }
         if (payment.paid() && order.getPaymentMethod() == PaymentMethod.TIEN_MAT) {
             order.setCashReceived(form.getCashReceived());
             order.setChangeAmount(payment.changeAmount());
@@ -137,7 +151,7 @@ public class OrderService {
 
     /** Nhân viên chuyển đơn sang bước tiếp theo. */
     @Transactional
-    public Order moveToNextStatus(Long id) {
+    public Order moveToNextStatus(Long id, String actor) {
         Order order = getById(id);
         OrderStatus next = order.getStatus().next(order.getOrderType());
         if (next == null) {
@@ -146,22 +160,25 @@ public class OrderService {
         if (next == OrderStatus.HOAN_THANH && order.getPaymentStatus() != PaymentStatus.DA_THANH_TOAN) {
             // Hoàn thành đơn tiền mặt = đã thu tiền khi giao / khi khách nhận
             if (order.getPaymentMethod() == PaymentMethod.TIEN_MAT) {
-                order.setPaymentStatus(PaymentStatus.DA_THANH_TOAN);
+                markPaid(order, actor);
             } else {
                 throw new IllegalStateException("Đơn chưa được xác nhận thanh toán, không thể hoàn thành");
             }
         }
         order.setStatus(next);
+        order.setProcessedBy(actor);
         return order;
     }
 
     @Transactional
-    public void cancelByStaff(Long id) {
+    public void cancelByStaff(Long id, String actor) {
         Order order = getById(id);
         if (order.getStatus().isFinished()) {
             throw new IllegalStateException("Đơn đã kết thúc, không thể huỷ");
         }
         order.setStatus(OrderStatus.DA_HUY);
+        order.setCancelledBy(actor);
+        order.setCancelledAt(LocalDateTime.now());
     }
 
     @Transactional
@@ -171,14 +188,58 @@ public class OrderService {
             throw new IllegalStateException("Quán đã xác nhận đơn, bạn không thể tự huỷ. Vui lòng liên hệ quán.");
         }
         order.setStatus(OrderStatus.DA_HUY);
+        order.setCancelledBy(customer.getUsername());
+        order.setCancelledAt(LocalDateTime.now());
     }
 
     @Transactional
-    public void confirmPayment(Long id) {
+    public void confirmPayment(Long id, String actor) {
         Order order = getById(id);
         if (order.getStatus() == OrderStatus.DA_HUY) {
             throw new IllegalStateException("Đơn đã huỷ");
         }
+        if (order.getPaymentStatus() == PaymentStatus.DA_THANH_TOAN) {
+            throw new IllegalStateException("Đơn đã được thanh toán trước đó");
+        }
+        markPaid(order, actor);
+    }
+
+    /** Ghi nhận đã thu tiền + ai thu + lúc nào. */
+    private static void markPaid(Order order, String actor) {
         order.setPaymentStatus(PaymentStatus.DA_THANH_TOAN);
+        order.setPaidConfirmedBy(actor);
+        order.setPaidAt(LocalDateTime.now());
+    }
+
+    /** Đơn tạo trong 1 ngày (lọc thêm theo trạng thái nếu có), mới nhất trước. */
+    public List<Order> findByDate(java.time.LocalDate date, OrderStatus status) {
+        LocalDateTime from = date.atStartOfDay();
+        LocalDateTime to = date.plusDays(1).atStartOfDay();
+        List<Order> orders = orderRepository.findByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(from, to);
+        return status == null ? orders : orders.stream().filter(o -> o.getStatus() == status).toList();
+    }
+
+    /** Số đơn theo từng ngày trong tuần chứa ngày {@code date} (cho thanh chọn ngày). */
+    public java.util.Map<java.time.LocalDate, Long> countByDayOfWeek(java.time.LocalDate date) {
+        java.time.LocalDate monday = com.trasua.web.DayPicker.weekStart(date);
+        return orderRepository.findByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
+                        monday.atStartOfDay(), monday.plusDays(7).atStartOfDay()).stream()
+                .collect(java.util.stream.Collectors.groupingBy(o -> o.getCreatedAt().toLocalDate(),
+                        java.util.stream.Collectors.counting()));
+    }
+
+    /** Số đơn CHƯA KẾT THÚC còn treo từ những ngày trước ngày đang xem. */
+    public long countUnfinishedBefore(java.time.LocalDate date) {
+        return orderRepository.countByStatusInAndCreatedAtLessThan(
+                List.of(OrderStatus.CHO_XAC_NHAN, OrderStatus.DA_XAC_NHAN, OrderStatus.DANG_PHA_CHE, OrderStatus.DANG_GIAO),
+                date.atStartOfDay());
+    }
+
+    /** Ngày gần nhất (trước ngày đang xem) còn đơn chưa kết thúc. */
+    public java.time.LocalDate oldestUnfinishedDate(java.time.LocalDate before) {
+        return orderRepository.findFirstByStatusInAndCreatedAtLessThanOrderByCreatedAtAsc(
+                        List.of(OrderStatus.CHO_XAC_NHAN, OrderStatus.DA_XAC_NHAN, OrderStatus.DANG_PHA_CHE, OrderStatus.DANG_GIAO),
+                        before.atStartOfDay())
+                .map(o -> o.getCreatedAt().toLocalDate()).orElse(null);
     }
 }

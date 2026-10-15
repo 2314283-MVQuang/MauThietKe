@@ -1,6 +1,6 @@
 # 📋 SPEC – Đặc tả & phân công công việc (giai đoạn 2)
 
-Dự án: **Web quản lý quán trà sữa "Trà Sữa DLU"** – Spring Boot 3.5 + Thymeleaf + PostgreSQL
+Dự án: **Web quản lý quán trà sữa "Trà Sữa Thôi"** – Spring Boot 3.5 + Thymeleaf + PostgreSQL
 Môn: **Mẫu thiết kế** – bắt buộc thể hiện **Builder**, **Decorator**, **Strategy**.
 Repo: https://github.com/2314283-MVQuang/MauThietKe
 

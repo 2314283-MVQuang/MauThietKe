@@ -79,7 +79,15 @@ public class AdminCatalogController {
         return productForm(product, product.getCategory().getId(), model);
     }
 
+    /** Một dòng "size thêm" trên form (tên + giá). */
+    public record SizeRow(String name, java.math.BigDecimal price) {
+    }
+
     private String productForm(Product product, Long categoryId, Model model) {
+        if (!model.containsAttribute("sizeRows")) {
+            model.addAttribute("sizeRows", product.getExtraSizes().stream()
+                    .map(x -> new SizeRow(x.getName(), x.getPrice().setScale(0, java.math.RoundingMode.HALF_UP))).toList());
+        }
         model.addAttribute("product", product);
         model.addAttribute("categoryId", categoryId);
         model.addAttribute("categories", catalogService.allCategories());
@@ -97,6 +105,8 @@ public class AdminCatalogController {
                               @RequestParam(value = "categoryId", required = false) Long categoryId,
                               @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
                               @RequestParam(value = "removeImage", defaultValue = "false") boolean removeImage,
+                              @RequestParam(value = "sizeName", required = false) java.util.List<String> sizeNames,
+                              @RequestParam(value = "sizePrice", required = false) java.util.List<java.math.BigDecimal> sizePrices,
                               Model model, RedirectAttributes ra) {
         String oldImage = form.getId() == null ? null : catalogService.getProduct(form.getId()).getImageUrl();
         String newUploaded = null;
@@ -107,7 +117,8 @@ public class AdminCatalogController {
             } else if (removeImage) {
                 form.setImageUrl(null);
             }
-            catalogService.saveProduct(form, categoryId);
+            catalogService.saveProduct(form, categoryId,
+                    sizeNames == null ? java.util.List.of() : sizeNames, sizePrices);
             // Ảnh cũ do hệ thống lưu mà không còn dùng nữa thì xoá khỏi ổ đĩa
             if (oldImage != null && !oldImage.equals(form.getImageUrl())) {
                 imageStorageService.deleteIfLocal(oldImage);
@@ -118,6 +129,12 @@ public class AdminCatalogController {
             imageStorageService.deleteIfLocal(newUploaded);
             form.setImageUrl(oldImage);
             model.addAttribute("error", e.getMessage());
+            // giữ lại các dòng size khách vừa nhập để sửa tiếp
+            java.util.List<SizeRow> rows = new java.util.ArrayList<>();
+            for (int i = 0; sizeNames != null && i < sizeNames.size(); i++) {
+                rows.add(new SizeRow(sizeNames.get(i), sizePrices != null && i < sizePrices.size() ? sizePrices.get(i) : null));
+            }
+            model.addAttribute("sizeRows", rows);
             return productForm(form, categoryId, model);
         }
     }

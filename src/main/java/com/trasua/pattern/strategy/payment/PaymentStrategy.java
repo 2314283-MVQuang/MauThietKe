@@ -29,4 +29,17 @@ public interface PaymentStrategy {
     default String getQrImageUrl() {
         return null;
     }
+
+    /**
+     * Nội dung mã QR ĐỘNG kèm đúng số tiền + nội dung chuyển khoản (chuẩn VietQR).
+     * null = phương thức này không dùng QR (VD tiền mặt) -> giao diện tự ẩn mã QR.
+     */
+    default String buildQrPayload(java.math.BigDecimal amount, String note) {
+        return null;
+    }
+
+    /** Người nhận tiền hiển thị dưới mã QR (VD "Vietcombank · STK ... · MAI VAN QUANG"). */
+    default String getQrReceiver() {
+        return null;
+    }
 }

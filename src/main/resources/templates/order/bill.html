@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Hoá đơn ' + ${order.orderCode}">Hoá đơn</title>
+    <style>
+        /* Khổ giấy máy in hoá đơn 80mm */
+        @page { size: 80mm auto; margin: 3mm; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #eef2ef; font-family: "Segoe UI", Roboto, Arial, sans-serif; color: #000; }
+        .bill { width: 80mm; max-width: 100%; margin: 16px auto; background: #fff; padding: 5mm 4mm; font-size: 12.5px; line-height: 1.35;
+                box-shadow: 0 4px 18px rgba(0,0,0,.12); }
+        .center { text-align: center; }
+        .shop { font-size: 18px; font-weight: 800; letter-spacing: .5px; }
+        .muted { color: #444; font-size: 11px; }
+        hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        td { vertical-align: top; padding: 2px 0; }
+        .r { text-align: right; white-space: nowrap; }
+        .item-name { font-weight: 600; }
+        .total td { font-size: 15px; font-weight: 800; padding-top: 4px; }
+        .qr { margin-top: 6px; }
+        .qr img { width: 52mm; height: 52mm; image-rendering: pixelated; }
+        .qr .amount { font-size: 18px; font-weight: 800; }
+        .stamp { border: 2px solid #000; display: inline-block; padding: 2px 8px; font-weight: 800; margin-top: 6px; }
+        .actions { text-align: center; margin: 10px; }
+        .actions button { padding: 8px 18px; border-radius: 8px; border: 0; background: #2E7D57; color: #fff; font-weight: 600; cursor: pointer; }
+        @media print {
+            body { background: #fff; }
+            .bill { box-shadow: none; margin: 0; width: auto; padding: 0; }
+            .actions { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="actions"><button onclick="window.print()">🖨 In hoá đơn</button></div>
+
+<div class="bill">
+    <div class="center">
+        <div class="shop">🧋 TRÀ SỮA THÔI</div>
+        <div class="muted">Hoá đơn bán hàng</div>
+    </div>
+    <hr>
+    <table>
+        <tr><td>Mã đơn</td><td class="r"><strong th:text="${order.orderCode}">TS...</strong></td></tr>
+        <tr><td>Thời gian</td><td class="r" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></td></tr>
+        <tr><td>Khách</td><td class="r" th:text="${order.customerName}"></td></tr>
+        <tr><td>Hình thức</td><td class="r" th:text="${order.orderType.label}"></td></tr>
+        <tr th:if="${order.staff}"><td>Thu ngân</td><td class="r" th:text="${order.staff.fullName}"></td></tr>
+    </table>
+    <hr>
+    <table>
+        <th:block th:each="item : ${order.items}">
+            <tr><td colspan="2" class="item-name" th:text="${item.productName}">Trà sữa</td></tr>
+            <tr>
+                <td class="muted" th:text="${item.quantity} + ' x ' + ${#numbers.formatDecimal(item.unitPrice, 1, 'POINT', 0, 'COMMA')}
+                    + (${item.description} != null ? ' · ' + ${item.description} : '')"></td>
+                <td class="r" th:text="${#numbers.formatDecimal(item.lineTotal, 1, 'POINT', 0, 'COMMA')}"></td>
+            </tr>
+        </th:block>
+    </table>
+    <hr>
+    <table>
+        <tr><td>Tạm tính</td><td class="r" th:text="${#numbers.formatDecimal(order.subtotal, 1, 'POINT', 0, 'COMMA')}"></td></tr>
+        <tr th:if="${order.discountAmount.signum() > 0}"><td th:text="'Giảm (' + ${order.promotionCode} + ')'">Giảm</td>
+            <td class="r" th:text="'-' + ${#numbers.formatDecimal(order.discountAmount, 1, 'POINT', 0, 'COMMA')}"></td></tr>
+        <tr class="total"><td>TỔNG CỘNG</td><td class="r" th:text="${#numbers.formatDecimal(order.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td></tr>
+        <tr><td>Thanh toán</td><td class="r" th:text="${order.paymentMethod.label}"></td></tr>
+        <th:block th:if="${order.cashReceived != null}">
+            <tr><td>Khách đưa</td><td class="r" th:text="${#numbers.formatDecimal(order.cashReceived, 1, 'POINT', 0, 'COMMA')}"></td></tr>
+            <tr><td>Tiền thối</td><td class="r" th:text="${#numbers.formatDecimal(order.changeAmount ?: 0, 1, 'POINT', 0, 'COMMA')}"></td></tr>
+        </th:block>
+    </table>
+
+    <!-- Mã QR đúng số tiền của đơn, tiền vào STK của quán -->
+    <div th:if="${showQr}" class="center qr">
+        <hr>
+        <div><strong>QUÉT MÃ ĐỂ THANH TOÁN</strong></div>
+        <img th:src="@{/qr/order/{id}.png(id=${order.id})}" alt="Mã QR thanh toán">
+        <div class="amount" th:text="${#numbers.formatDecimal(order.total, 1, 'POINT', 0, 'COMMA')} + 'đ'">64.800đ</div>
+        <div class="muted" th:text="${qrReceiver}">Vietcombank · STK ... · MAI VAN QUANG</div>
+        <div class="muted">Nội dung: <strong th:text="${order.orderCode}"></strong></div>
+    </div>
+    <div th:if="${order.paymentStatus.name() == 'DA_THANH_TOAN'}" class="center"><span class="stamp">ĐÃ THANH TOÁN</span></div>
+    <div th:if="${order.status.name() == 'DA_HUY'}" class="center"><span class="stamp">ĐƠN ĐÃ HUỶ</span></div>
+    <hr>
+    <div class="center muted">Cảm ơn quý khách! Hẹn gặp lại 💚</div>
+</div>
+
+<script th:if="${autoPrint}">
+    // Đợi ảnh QR tải xong rồi mới mở hộp thoại in
+    window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });
+</script>
+</body>
+</html>

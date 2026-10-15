@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Góp ý khách hàng')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <h3 class="text-ts mb-3"><i class="bi bi-chat-heart"></i> Góp ý món của khách</h3>
+
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-lg-3" th:each="e : ${statusCounts}">
+            <a class="text-decoration-none" th:href="@{/admin/feedback(status=${e.key})}">
+                <div class="card stat-card p-3" th:classappend="${selectedStatus == e.key} ? 'border-2 border-success'">
+                    <div class="stat-label" th:text="${e.key.label}">Mới gửi</div>
+                    <div class="stat-value" th:text="${e.value}">0</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <form class="d-flex flex-wrap gap-2 mb-3" th:action="@{/admin/feedback}" method="get">
+                <select name="status" class="form-select form-select-sm w-auto">
+                    <option value="">Mọi trạng thái</option>
+                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${selectedStatus == s}"></option>
+                </select>
+                <select name="productId" class="form-select form-select-sm w-auto">
+                    <option value="">Mọi món</option>
+                    <option value="0" th:selected="${selectedProductId != null and selectedProductId == 0}">Góp ý chung</option>
+                    <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}"
+                            th:selected="${selectedProductId != null and selectedProductId == p.id}"></option>
+                </select>
+                <button class="btn btn-sm btn-ts">Lọc</button>
+                <a th:href="@{/admin/feedback}" class="btn btn-sm btn-outline-secondary">Bỏ lọc</a>
+            </form>
+
+            <div th:each="f : ${feedbacks}" class="card p-3 mb-3 feedback-card" th:id="'f' + ${f.id}"
+                 th:classappend="${f.status.name() == 'MOI'} ? 'is-new'">
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <div>
+                        <strong th:text="${f.product != null} ? ${f.product.name} : 'Góp ý chung'"></strong>
+                        <span class="badge badge-soft ms-1" th:text="${f.topic.label}"></span>
+                        <div class="small text-muted">
+                            <span th:text="${f.customer.fullName}"></span>
+                            <span th:if="${f.customer.phone}" th:text="' · ' + ${f.customer.phone}"></span>
+                            · <span th:text="${#temporals.format(f.createdAt, 'HH:mm dd/MM/yyyy')}"></span>
+                        </div>
+                    </div>
+                    <span class="badge align-self-start" th:classappend="'bg-' + ${f.status.badge}" th:text="${f.status.label}"></span>
+                </div>
+                <p class="mt-2 mb-2" th:text="${f.content}"></p>
+                <div th:if="${f.adminReply}" class="shop-reply mb-2">
+                    <div class="small fw-semibold" th:text="'Đã trả lời bởi ' + ${f.repliedBy} + ' · ' + ${#temporals.format(f.repliedAt, 'HH:mm dd/MM')}"></div>
+                    <div th:text="${f.adminReply}"></div>
+                </div>
+                <form th:action="@{/admin/feedback/{id}/reply(id=${f.id})}" method="post" class="row g-2 align-items-end">
+                    <input type="hidden" name="back"
+                           th:value="(${selectedStatus != null} ? 'status=' + ${selectedStatus} : '') + (${selectedProductId != null} ? '&productId=' + ${selectedProductId} : '')">
+                    <div class="col-md-7">
+                        <textarea name="reply" class="form-control form-control-sm" rows="2" maxlength="1000"
+                                  th:placeholder="${f.adminReply} ? 'Sửa phản hồi...' : 'Trả lời khách (khách sẽ thấy)...'"></textarea>
+                    </div>
+                    <div class="col-7 col-md-3">
+                        <select name="status" class="form-select form-select-sm">
+                            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"
+                                    th:selected="${f.status.name() == 'MOI'} ? ${s.name() == 'DA_XEM'} : ${f.status == s}"></option>
+                        </select>
+                    </div>
+                    <div class="col-5 col-md-2 d-grid"><button class="btn btn-sm btn-ts">Lưu</button></div>
+                </form>
+            </div>
+            <p th:if="${#lists.isEmpty(feedbacks)}" class="text-muted">Không có góp ý nào.</p>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card p-3">
+                <h6 class="text-ts">Món cần ưu tiên cải thiện</h6>
+                <div class="small text-muted mb-2">Số góp ý chưa xử lý xong</div>
+                <ol class="mb-0 ps-3">
+                    <li th:each="e : ${topProducts}" class="mb-1 d-flex justify-content-between">
+                        <span th:text="${e.key}"></span><strong th:text="${e.value}"></strong>
+                    </li>
+                </ol>
+                <p th:if="${#maps.isEmpty(topProducts)}" class="text-muted mb-0">Chưa có.</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

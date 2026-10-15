@@ -65,6 +65,8 @@
             <div class="card p-4">
                 <h2 class="h4 text-ts mb-3">Tuỳ chỉnh ly của bạn</h2>
                 <div th:unless="${product.available}" class="alert alert-warning">Món này đang tạm hết.</div>
+                <a sec:authorize="hasRole('CUSTOMER')" th:href="@{/feedback(productId=${product.id})}" class="small text-ts d-inline-block mb-2">
+                    <i class="bi bi-chat-heart"></i> Góp ý để quán làm món này ngon hơn</a>
 
                 <form id="drinkForm" th:action="@{/cart/add}" method="post"
                       th:attr="data-api=@{/api/price-preview}">
@@ -72,11 +74,12 @@
 
                     <h6 class="mt-3">Chọn size</h6>
                     <div class="btn-group" role="group">
-                        <th:block th:each="s, st : ${sizes}">
-                            <input type="radio" class="btn-check" name="size" th:id="'size' + ${s}" th:value="${s}" th:checked="${st.first}">
-                            <label class="btn btn-outline-ts" th:for="'size' + ${s}">
-                                <span th:text="${s.label}">Size</span>
-                                <small th:text="'(' + ${#numbers.formatDecimal(s.name() == 'M' ? product.priceM : product.priceL, 1, 'POINT', 0, 'COMMA')} + 'đ)'"></small>
+                        <th:block th:each="s : ${product.sizeOptions}">
+                            <input type="radio" class="btn-check" name="size" th:id="'size' + ${s.code()}" th:value="${s.code()}"
+                                   th:checked="${s.code() == 'M'}">
+                            <label class="btn btn-outline-ts" th:for="'size' + ${s.code()}">
+                                <span th:text="${s.label()}">Size</span>
+                                <small th:text="'(' + ${#numbers.formatDecimal(s.price(), 1, 'POINT', 0, 'COMMA')} + 'đ)'"></small>
                             </label>
                         </th:block>
                     </div>
@@ -97,16 +100,21 @@
                         </th:block>
                     </div>
 
-                    <h6 class="mt-4">Topping <small class="text-muted">(tối đa 5)</small></h6>
-                    <div class="row">
+                    <h6 class="mt-4">Topping <small class="text-muted">(tối đa 5 phần, mỗi loại tối đa 3 phần)</small></h6>
+                    <div class="row g-2" id="toppingList">
                         <div class="col-sm-6" th:each="t : ${toppings}">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="toppingIds"
-                                       th:id="'top' + ${t.id}" th:value="${t.id}">
-                                <label class="form-check-label" th:for="'top' + ${t.id}">
-                                    <span th:text="${t.name}">Topping</span>
-                                    <small class="text-muted" th:text="'+' + ${#numbers.formatDecimal(t.price, 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
-                                </label>
+                            <div class="topping-row" th:attr="data-id=${t.id}">
+                                <div class="me-auto">
+                                    <div class="fw-semibold" th:text="${t.name}">Topping</div>
+                                    <small class="text-muted" th:text="'+' + ${#numbers.formatDecimal(t.price, 1, 'POINT', 0, 'COMMA')} + 'đ / phần'"></small>
+                                </div>
+                                <div class="qty-stepper" role="group" th:attr="aria-label='Số phần ' + ${t.name}">
+                                    <button type="button" class="qty-btn" data-step="-1" aria-label="Bớt">−</button>
+                                    <span class="qty-val">0</span>
+                                    <button type="button" class="qty-btn" data-step="1" aria-label="Thêm">+</button>
+                                </div>
+                                <!-- mỗi phần = 1 input toppingIds (gửi 2 lần = 2 phần) -->
+                                <span class="topping-hidden"></span>
                             </div>
                         </div>
                     </div>
@@ -270,6 +278,44 @@
                 })
                 .catch(() => {});
         }
+
+        // ---- Số phần topping: nút − / + ----
+        const MAX_TOTAL = 5, MAX_EACH = 3;
+        const rows = [...document.querySelectorAll('.topping-row')];
+        function totalPortions() {
+            return rows.reduce((sum, r) => sum + Number(r.querySelector('.qty-val').textContent), 0);
+        }
+        function syncRow(row) {
+            const n = Number(row.querySelector('.qty-val').textContent);
+            const box = row.querySelector('.topping-hidden');
+            box.innerHTML = '';
+            for (let i = 0; i < n; i++) {
+                const h = document.createElement('input');
+                h.type = 'hidden'; h.name = 'toppingIds'; h.value = row.dataset.id;
+                box.appendChild(h);
+            }
+            row.classList.toggle('active', n > 0);
+        }
+        function syncButtons() {
+            const total = totalPortions();
+            rows.forEach(r => {
+                const n = Number(r.querySelector('.qty-val').textContent);
+                r.querySelector('[data-step="-1"]').disabled = n === 0;
+                r.querySelector('[data-step="1"]').disabled = n >= MAX_EACH || total >= MAX_TOTAL;
+            });
+        }
+        rows.forEach(row => {
+            row.querySelectorAll('.qty-btn').forEach(btn => btn.addEventListener('click', () => {
+                const val = row.querySelector('.qty-val');
+                const next = Math.max(0, Math.min(MAX_EACH, Number(val.textContent) + Number(btn.dataset.step)));
+                if (btn.dataset.step === '1' && totalPortions() >= MAX_TOTAL) return;
+                val.textContent = next;
+                syncRow(row);
+                syncButtons();
+                refresh();
+            }));
+        });
+        syncButtons();
 
         form.addEventListener('change', refresh);
         form.addEventListener('input', refresh);

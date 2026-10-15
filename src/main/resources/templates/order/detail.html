@@ -16,7 +16,8 @@
         <div class="d-flex gap-2 no-print">
             <span class="badge fs-6" th:classappend="'bg-' + ${order.status.badge}" th:text="${order.status.label}">Trạng thái</span>
             <span class="badge fs-6" th:classappend="'bg-' + ${order.paymentStatus.badge}" th:text="${order.paymentStatus.label}"></span>
-            <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> In hoá đơn</button>
+            <a class="btn btn-sm btn-outline-secondary" th:href="@{/orders/{id}/bill(id=${order.id}, print=1)}" target="_blank">
+                <i class="bi bi-printer"></i> In hoá đơn<th:block th:if="${dynamicQr and order.paymentStatus.name() == 'CHUA_THANH_TOAN' and order.status.name() != 'DA_HUY'}"> + QR</th:block></a>
         </div>
     </div>
 
@@ -77,12 +78,18 @@
                 <h6 class="text-ts">Thanh toán <span class="badge bg-light text-ts">Strategy</span></h6>
                 <div th:text="${order.paymentMethod.label}"></div>
                 <small class="text-muted" th:text="${order.paymentInfo}"></small>
-                <div th:if="${paymentQr != null and order.paymentStatus.name() == 'CHUA_THANH_TOAN' and order.status.name() != 'DA_HUY'}"
-                     class="text-center mt-2">
-                    <img th:src="@{${paymentQr}}" alt="Mã QR thanh toán" class="img-fluid rounded-3 border" style="max-height:360px">
-                    <div class="small mt-1">
-                        Số tiền: <strong class="price" th:text="${#numbers.formatDecimal(order.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong><br>
+                <div th:if="${(dynamicQr or paymentQr != null) and order.paymentStatus.name() == 'CHUA_THANH_TOAN' and order.status.name() != 'DA_HUY'}"
+                     class="text-center mt-2 pay-qr">
+                    <!-- QR ĐỘNG: đúng số tiền + nội dung = mã đơn (do PaymentStrategy tạo); chưa cấu hình thì dùng ảnh QR tĩnh -->
+                    <img th:if="${dynamicQr}" th:src="@{/qr/order/{id}.png(id=${order.id})}" alt="Mã QR thanh toán kèm số tiền"
+                         class="img-fluid rounded-3 border" style="max-height:320px">
+                    <img th:unless="${dynamicQr}" th:src="@{${paymentQr}}" alt="Mã QR thanh toán" class="img-fluid rounded-3 border" style="max-height:360px">
+                    <div class="pay-qr-amount" th:text="${#numbers.formatDecimal(order.total, 1, 'POINT', 0, 'COMMA')} + 'đ'">64.800đ</div>
+                    <div class="small">
+                        <div th:if="${qrReceiver}" th:text="${qrReceiver}">Vietcombank · STK</div>
                         Nội dung: <strong th:text="${order.orderCode}"></strong>
+                        <div th:if="${dynamicQr}" class="text-muted mt-1">Quét bằng app ngân hàng hoặc MoMo – số tiền &amp; nội dung đã điền sẵn.</div>
+                        <div th:unless="${dynamicQr}" class="text-muted mt-1">Nhớ nhập đúng số tiền và nội dung khi chuyển.</div>
                     </div>
                 </div>
             </div>
