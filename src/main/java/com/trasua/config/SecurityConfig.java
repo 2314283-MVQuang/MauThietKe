@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
  * PHÂN QUYỀN:
  *   - Khách vãng lai : xem menu, đăng ký, đăng nhập.
  *   - CUSTOMER       : đặt món, giỏ hàng, lịch sử đơn của mình, huỷ đơn chờ xác nhận.
- *   - STAFF          : + bán hàng tại quầy, xử lý đơn (/staff/**).
+ *   - STAFF          : + bán hàng tại quầy, xử lý đơn (/staff/**), chấm công & xem lương (/staff/timesheet).
  *   - ADMIN          : + toàn quyền quản trị (/admin/**): thống kê, menu,
- *                      topping, khuyến mãi, tài khoản.
+ *                      topping, khuyến mãi, khách hàng, nhân viên, bảng lương, tài khoản.
  */
 @Configuration
 @EnableWebSecurity
@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/menu-board", "/products/**", "/api/**").permitAll()
                         .requestMatchers("/login", "/register", "/error", "/403", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/staff/timesheet/**").hasRole("STAFF")   // chấm công: chỉ nhân viên
                         .requestMatchers("/staff/**").hasAnyRole("STAFF", "ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(form -> form

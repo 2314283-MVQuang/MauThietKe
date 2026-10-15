@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ca làm nhân viên')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <ul th:replace="~{fragments/admin-people :: tabs('staff')}"></ul>
+
+    <a th:href="@{/admin/staff(month=${month})}" class="small text-ts"><i class="bi bi-arrow-left"></i> Danh sách nhân viên</a>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 my-3">
+        <div>
+            <h3 class="text-ts mb-0" th:text="${staff.fullName}">Tên</h3>
+            <div class="small text-muted">
+                <span th:text="'@' + ${staff.username}"></span> ·
+                <span class="badge badge-soft" th:text="${staff.employmentType.label}"></span> ·
+                <span th:text="${#numbers.formatDecimal(staff.hourlyRate, 1, 'POINT', 0, 'COMMA')} + 'đ/giờ'"></span>
+                <a th:href="@{/admin/staff/{id}/edit(id=${staff.id})}" class="ms-2 text-ts"><i class="bi bi-pencil"></i> Sửa lương</a>
+            </div>
+        </div>
+        <div th:replace="~{fragments/admin-people :: month-picker('/admin/staff/' + ${staff.id})}"></div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3"><div class="stat-label">Số ca (tháng <span th:text="${monthLabel}"></span>)</div>
+                <div class="stat-value" th:text="${summary.shiftCount}">0</div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3"><div class="stat-label">Tổng giờ làm</div>
+                <div class="stat-value" th:text="${summary.hoursText} + ' giờ'">0</div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card payroll-total p-3"><div class="stat-label">Lương phải trả</div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(summary.payable, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3"><div class="stat-label">Trạng thái</div>
+                <div class="stat-value fs-6 pt-1">
+                    <span th:if="${summary.paid}" class="badge bg-success"
+                          th:text="'Đã trả ' + ${#temporals.format(summary.paidRecord.paidAt, 'dd/MM/yyyy')}"></span>
+                    <span th:unless="${summary.paid}" class="badge bg-warning text-dark">Chưa trả</span>
+                    <span th:if="${summary.openShift != null}" class="badge bg-success">Đang trong ca</span>
+                </div></div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="d-flex justify-content-between align-items-center p-3 pb-0">
+                    <h6 class="text-ts mb-0">Các ca làm</h6>
+                    <button class="btn btn-sm btn-outline-ts" type="button" data-bs-toggle="collapse" data-bs-target="#addShift"
+                            th:disabled="${summary.paid}"><i class="bi bi-plus-lg"></i> Thêm ca</button>
+                </div>
+                <div class="collapse px-3 pt-3" id="addShift">
+                    <form th:action="@{/admin/staff/{id}/shifts/add(id=${staff.id})}" method="post" class="row g-2 align-items-end border rounded p-2 mx-0">
+                        <div class="col-md-3"><label class="form-label small mb-1">Giờ vào</label>
+                            <input type="datetime-local" name="checkIn" class="form-control form-control-sm" required></div>
+                        <div class="col-md-3"><label class="form-label small mb-1">Giờ ra</label>
+                            <input type="datetime-local" name="checkOut" class="form-control form-control-sm" required></div>
+                        <div class="col-md-4"><label class="form-label small mb-1">Lý do *</label>
+                            <input name="reason" class="form-control form-control-sm" placeholder="VD: quên chấm công" required></div>
+                        <div class="col-md-2 d-grid"><button class="btn btn-sm btn-ts">Thêm</button></div>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 mt-2">
+                        <thead><tr><th>Ngày</th><th>Vào</th><th>Ra</th><th class="text-end">Giờ</th><th class="text-end">Thành tiền</th><th style="width:60px"></th></tr></thead>
+                        <tbody>
+                        <th:block th:each="s : ${summary.shifts}">
+                            <tr th:classappend="${s.warning} ? 'table-warning'">
+                                <td>
+                                    <span th:text="${s.dayLabel}"></span>
+                                    <span th:if="${s.weekend}" class="badge badge-soft ms-1">cuối tuần</span>
+                                    <div th:if="${s.edited}" class="small text-muted" th:text="'Sửa bởi ' + ${s.editedBy} + ': ' + ${s.editReason}"></div>
+                                </td>
+                                <td th:text="${#temporals.format(s.checkIn, 'HH:mm')}"></td>
+                                <td>
+                                    <span th:if="${s.open}" class="badge bg-success">Đang làm</span>
+                                    <span th:unless="${s.open}" th:text="${#temporals.format(s.checkOut, 'HH:mm dd/MM')}"></span>
+                                </td>
+                                <td class="text-end">
+                                    <span th:text="${s.hoursText}"></span>
+                                    <i th:if="${s.warning}" class="bi bi-exclamation-triangle text-danger" title="Ca quá 12 giờ - có thể quên kết ca"></i>
+                                </td>
+                                <td class="text-end" th:text="${s.open} ? '–' : ${#numbers.formatDecimal(s.amount, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-ts" type="button" data-bs-toggle="collapse"
+                                            th:attr="data-bs-target='#edit' + ${s.id}" th:disabled="${summary.paid}" title="Sửa giờ">
+                                        <i class="bi bi-pencil"></i></button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" th:id="'edit' + ${s.id}">
+                                <td colspan="6" class="bg-light">
+                                    <form th:action="@{/admin/staff/shifts/{sid}/edit(sid=${s.id})}" method="post" class="row g-2 align-items-end">
+                                        <input type="hidden" name="staffId" th:value="${staff.id}">
+                                        <input type="hidden" name="month" th:value="${month}">
+                                        <div class="col-md-3"><label class="form-label small mb-1">Giờ vào</label>
+                                            <input type="datetime-local" name="checkIn" class="form-control form-control-sm" th:value="${s.checkInInput}" required></div>
+                                        <div class="col-md-3"><label class="form-label small mb-1">Giờ ra</label>
+                                            <input type="datetime-local" name="checkOut" class="form-control form-control-sm" th:value="${s.checkOutInput}" required></div>
+                                        <div class="col-md-4"><label class="form-label small mb-1">Lý do sửa *</label>
+                                            <input name="reason" class="form-control form-control-sm" placeholder="VD: quên kết ca" required></div>
+                                        <div class="col-md-2 d-grid"><button class="btn btn-sm btn-ts">Lưu</button></div>
+                                    </form>
+                                </td>
+                            </tr>
+                        </th:block>
+                        <tr th:if="${#lists.isEmpty(summary.shifts)}"><td colspan="6" class="text-center text-muted py-4">Tháng này chưa có ca làm.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p th:if="${summary.paid}" class="small text-muted px-3 py-2 mb-0">
+                    Lương tháng này đã chốt nên không sửa được ca - vào <a th:href="@{/admin/payroll(month=${month})}" class="text-ts">Bảng lương</a> để huỷ chốt nếu cần.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card p-3 mb-4">
+                <h6 class="text-ts mb-1">Chi tiết lương</h6>
+                <div class="small text-muted mb-2" th:text="${summary.strategyName}"></div>
+                <ul class="list-unstyled mb-2 payroll-lines">
+                    <li th:each="line : ${summary.breakdown.lines}" class="d-flex justify-content-between gap-2">
+                        <span th:text="${line.label()}"></span>
+                        <strong th:text="${#numbers.formatDecimal(line.amount(), 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong>
+                    </li>
+                </ul>
+                <div class="d-flex justify-content-between border-top pt-2">
+                    <span class="fw-semibold">Tổng tính được</span>
+                    <strong th:text="${#numbers.formatDecimal(summary.amount, 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong>
+                </div>
+                <p th:if="${summary.changedAfterPaid}" class="small text-danger mt-2 mb-0">Khác số đã chốt
+                    (<span th:text="${#numbers.formatDecimal(summary.paidRecord.amount, 1, 'POINT', 0, 'COMMA')} + 'đ'"></span>).</p>
+            </div>
+            <div class="card p-3">
+                <h6 class="text-ts">Giờ làm theo ngày</h6>
+                <div class="bar-chart hours-chart">
+                    <div class="bar-row" th:each="b : ${dayBars}">
+                        <span class="bar-label" style="width:72px" th:text="${b.label}"></span>
+                        <div class="bar-track"><div class="bar-fill" th:style="'width:' + ${b.percent} + '%'"></div></div>
+                        <span class="bar-value" style="width:60px" th:text="${b.hoursText} + 'h'"></span>
+                    </div>
+                </div>
+                <p th:if="${#lists.isEmpty(dayBars)}" class="text-muted mb-0">Chưa có dữ liệu.</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

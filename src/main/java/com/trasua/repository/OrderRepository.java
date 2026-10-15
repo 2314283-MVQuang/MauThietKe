@@ -16,6 +16,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findAllByOrderByCreatedAtDesc();
 
+    /** Tất cả đơn có gắn tài khoản khách (dùng thống kê khách hàng). */
+    List<Order> findByCustomerIsNotNull();
+
+    /** Đơn tạo trong khoảng [from, to). */
+    List<Order> findByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(LocalDateTime from, LocalDateTime to);
+
+    long countByStatusInAndCreatedAtLessThan(java.util.Collection<OrderStatus> statuses, LocalDateTime before);
+
+    java.util.Optional<Order> findFirstByStatusInAndCreatedAtLessThanOrderByCreatedAtAsc(
+            java.util.Collection<OrderStatus> statuses, LocalDateTime before);
+
     List<Order> findByStatusOrderByCreatedAtDesc(OrderStatus status);
 
     List<Order> findByStatusAndCreatedAtBetween(OrderStatus status, LocalDateTime from, LocalDateTime to);
@@ -35,4 +46,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             + "FROM Order o JOIN o.items i WHERE o.status = :status "
             + "GROUP BY i.productName ORDER BY SUM(i.quantity) DESC")
     List<Object[]> findBestSellers(@Param("status") OrderStatus status);
+
+    /** Top đồ uống bán chạy trong khoảng thời gian [from, to). */
+    @Query("SELECT i.productName, SUM(i.quantity), SUM(i.lineTotal) "
+            + "FROM Order o JOIN o.items i WHERE o.status = :status AND o.createdAt >= :from AND o.createdAt < :to "
+            + "GROUP BY i.productName ORDER BY SUM(i.quantity) DESC")
+    List<Object[]> findBestSellersBetween(@Param("status") OrderStatus status,
+                                          @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Thanh chuyển nhanh giữa các trang quản lý con người (Thuận) -->
+<ul th:fragment="tabs(active)" class="nav admin-tabs border-bottom mb-4">
+    <li class="nav-item">
+        <a class="nav-link" th:classappend="${active == 'customers'} ? 'active'" th:href="@{/admin/customers}">
+            <i class="bi bi-people"></i> Khách hàng</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" th:classappend="${active == 'staff'} ? 'active'" th:href="@{/admin/staff}">
+            <i class="bi bi-person-badge"></i> Nhân viên</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" th:classappend="${active == 'payroll'} ? 'active'" th:href="@{/admin/payroll}">
+            <i class="bi bi-cash-stack"></i> Bảng lương</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" th:classappend="${active == 'users'} ? 'active'" th:href="@{/admin/users}">
+            <i class="bi bi-shield-lock"></i> Tài khoản &amp; phân quyền</a>
+    </li>
+</ul>
+
+<!-- Chọn tháng: ‹ [tháng] › -->
+<div th:fragment="month-picker(url)" class="d-flex flex-wrap align-items-center gap-2">
+    <a class="btn btn-sm btn-outline-ts" th:href="@{${url}(month=${prevMonth})}" title="Tháng trước"><i class="bi bi-chevron-left"></i></a>
+    <form th:action="@{${url}}" method="get">
+        <input type="month" name="month" class="form-control form-control-sm" th:value="${month}" onchange="this.form.submit()">
+    </form>
+    <a class="btn btn-sm btn-outline-ts" th:href="@{${url}(month=${nextMonth})}" title="Tháng sau"><i class="bi bi-chevron-right"></i></a>
+</div>
+</body>
+</html>

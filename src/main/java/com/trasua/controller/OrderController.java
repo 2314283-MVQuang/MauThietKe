@@ -48,11 +48,32 @@ public class OrderController {
         Order order = orderService.getForViewer(id, user);
         model.addAttribute("order", order);
         // STRATEGY: lấy QR từ chiến lược thanh toán của đơn (null với tiền mặt)
-        model.addAttribute("paymentQr", paymentProcessor.getStrategy(order.getPaymentMethod()).getQrImageUrl());
+        var strategy = paymentProcessor.getStrategy(order.getPaymentMethod());
+        model.addAttribute("paymentQr", strategy.getQrImageUrl());
+        // QR ĐỘNG: đúng số tiền của đơn + nội dung = mã đơn (null nếu chưa cấu hình -> dùng ảnh QR tĩnh)
+        boolean dynamicQr = strategy.buildQrPayload(order.getTotal(), order.getOrderCode()) != null;
+        model.addAttribute("dynamicQr", dynamicQr);
+        model.addAttribute("qrReceiver", strategy.getQrReceiver());
         // Đơn đã hoàn thành: khách được đánh giá từng món
         model.addAttribute("reviewedIds", user.getRole() == Role.CUSTOMER
                 ? reviewService.reviewedProductIds(user) : java.util.Set.of());
         return "order/detail";
+    }
+
+    /** Hoá đơn in (khổ giấy máy in bill 80mm) - kèm mã QR đúng số tiền nếu đơn chưa thanh toán. */
+    @GetMapping("/{id}/bill")
+    public String bill(@PathVariable("id") Long id,
+                       @org.springframework.web.bind.annotation.RequestParam(value = "print", required = false) String print,
+                       Principal principal, Model model) {
+        Order order = orderService.getForViewer(id, userService.getByUsername(principal.getName()));
+        var strategy = paymentProcessor.getStrategy(order.getPaymentMethod());
+        boolean needPay = order.getPaymentStatus() == com.trasua.entity.PaymentStatus.CHUA_THANH_TOAN
+                && order.getStatus() != com.trasua.entity.OrderStatus.DA_HUY;
+        model.addAttribute("order", order);
+        model.addAttribute("showQr", needPay && strategy.buildQrPayload(order.getTotal(), order.getOrderCode()) != null);
+        model.addAttribute("qrReceiver", strategy.getQrReceiver());
+        model.addAttribute("autoPrint", print != null);
+        return "order/bill";
     }
 
     @PostMapping("/{id}/cancel")

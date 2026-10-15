@@ -29,9 +29,9 @@ public class OrderItem {
     @Column(name = "product_name", nullable = false, length = 150)
     private String productName;
 
-    @Enumerated(EnumType.STRING)
+    /** Mã size: M, L hoặc size thêm của món (S, XL...). */
     @Column(name = "size", nullable = false, length = 5)
-    private DrinkSize size;
+    private String size;
 
     @Column(name = "sugar_level", nullable = false)
     private int sugarLevel;
@@ -70,8 +70,9 @@ public class OrderItem {
     public void setProductId(Long productId) { this.productId = productId; }
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }
-    public DrinkSize getSize() { return size; }
-    public void setSize(DrinkSize size) { this.size = size; }
+    public String getSize() { return size; }
+    public void setSize(String size) { this.size = size; }
+    public void setSize(DrinkSize size) { this.size = size == null ? null : size.name(); }
     public int getSugarLevel() { return sugarLevel; }
     public void setSugarLevel(int sugarLevel) { this.sugarLevel = sugarLevel; }
     public int getIceLevel() { return iceLevel; }

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nhân viên')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4" style="max-width: 760px">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <a th:href="@{/admin/staff}" class="text-ts text-decoration-none"><i class="bi bi-arrow-left"></i> Danh sách nhân viên</a>
+    <h3 class="text-ts my-3" th:text="${form.id == null} ? 'Thêm nhân viên' : 'Sửa nhân viên ' + ${form.username}">Nhân viên</h3>
+
+    <div class="card p-4">
+        <form th:action="@{/admin/staff/save}" th:object="${form}" method="post">
+            <input type="hidden" th:field="*{id}">
+            <h6 class="text-ts">Tài khoản</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Tên đăng nhập *</label>
+                    <input th:field="*{username}" class="form-control" th:readonly="${form.id != null}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" th:text="${form.id == null} ? 'Mật khẩu *' : 'Mật khẩu mới (để trống = giữ nguyên)'">Mật khẩu</label>
+                    <input th:field="*{password}" type="password" class="form-control" th:required="${form.id == null}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Họ tên *</label>
+                    <input th:field="*{fullName}" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Số điện thoại</label>
+                    <input th:field="*{phone}" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input th:field="*{email}" type="email" class="form-control">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input th:field="*{enabled}" type="checkbox" class="form-check-input">
+                        <label class="form-check-label" th:for="${#ids.prev('enabled')}">Cho phép đăng nhập</label>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="text-ts">Lương</h6>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Loại nhân viên</label>
+                    <select th:field="*{employmentType}" class="form-select" id="empType">
+                        <option th:each="t : ${types}" th:value="${t}" th:text="${t.label}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Lương theo giờ (đ) *</label>
+                    <input th:field="*{hourlyRate}" type="number" min="1000" step="500" class="form-control" required>
+                </div>
+                <div class="col-md-4" id="baseSalaryBox">
+                    <label class="form-label">Lương cứng/tháng (đ)</label>
+                    <input th:field="*{baseSalary}" type="number" min="0" step="100000" class="form-control">
+                </div>
+                <div class="col-12 small text-muted">
+                    <strong>Bán thời gian:</strong> lương = số giờ × lương/giờ (+20% giờ cuối tuần).
+                    <strong>Toàn thời gian:</strong> lương cứng + giờ vượt 208 giờ/tháng × lương/giờ × 1,5.
+                    Làm từ 20 ca/tháng được thưởng chuyên cần 200.000đ.
+                    Đổi lương/giờ chỉ áp dụng cho các ca từ bây giờ.
+                </div>
+            </div>
+            <button class="btn btn-ts mt-4"><i class="bi bi-save"></i> Lưu</button>
+        </form>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script>
+    (function () {
+        const type = document.getElementById('empType');
+        const box = document.getElementById('baseSalaryBox');
+        function sync() { box.style.display = type.value === 'FULL_TIME' ? '' : 'none'; }
+        type.addEventListener('change', sync);
+        sync();
+    })();
+</script>
+</body>
+</html>

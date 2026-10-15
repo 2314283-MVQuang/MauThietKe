@@ -2,6 +2,7 @@ package com.trasua.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -41,6 +42,21 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // ===== Thông tin tính lương (chỉ dùng cho NHÂN VIÊN) =====
+
+    /** Bán thời gian / toàn thời gian - quyết định chiến lược tính lương. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "employment_type", length = 20)
+    private EmploymentType employmentType;
+
+    /** Lương theo giờ (VNĐ/giờ). */
+    @Column(name = "hourly_rate", precision = 12, scale = 2)
+    private BigDecimal hourlyRate;
+
+    /** Lương cứng/tháng (chỉ nhân viên toàn thời gian). */
+    @Column(name = "base_salary", precision = 12, scale = 2)
+    private BigDecimal baseSalary;
+
     @PrePersist
     void onCreate() {
         if (createdAt == null) {
@@ -78,4 +94,14 @@ public class User {
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    /** Chưa khai báo thì coi là bán thời gian. */
+    public EmploymentType getEmploymentType() {
+        return employmentType == null ? EmploymentType.PART_TIME : employmentType;
+    }
+    public void setEmploymentType(EmploymentType employmentType) { this.employmentType = employmentType; }
+    public BigDecimal getHourlyRate() { return hourlyRate == null ? BigDecimal.ZERO : hourlyRate; }
+    public void setHourlyRate(BigDecimal hourlyRate) { this.hourlyRate = hourlyRate; }
+    public BigDecimal getBaseSalary() { return baseSalary == null ? BigDecimal.ZERO : baseSalary; }
+    public void setBaseSalary(BigDecimal baseSalary) { this.baseSalary = baseSalary; }
 }

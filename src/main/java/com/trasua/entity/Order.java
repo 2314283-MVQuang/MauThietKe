@@ -98,6 +98,25 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // ===== Dấu vết xử lý (để quản lý đối soát cuối ngày) =====
+
+    /** Tên đăng nhập người xử lý gần nhất (xác nhận / pha chế / giao / hoàn thành). */
+    @Column(name = "processed_by", length = 50)
+    private String processedBy;
+
+    /** Ai xác nhận đã thu tiền (null = thu ngay lúc tạo đơn tại quầy). */
+    @Column(name = "paid_confirmed_by", length = 50)
+    private String paidConfirmedBy;
+
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
+    @Column(name = "cancelled_by", length = 50)
+    private String cancelledBy;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
     @PrePersist
     void onCreate() {
         if (createdAt == null) {
@@ -123,6 +142,25 @@ public class Order {
     public int getTotalQuantity() {
         return items.stream().mapToInt(OrderItem::getQuantity).sum();
     }
+
+    /** Người đã thu tiền đơn này (để quy trách nhiệm khi đếm két). */
+    public String getCashier() {
+        if (paidConfirmedBy != null) {
+            return paidConfirmedBy;
+        }
+        return staff != null ? staff.getUsername() : null;
+    }
+
+    public String getProcessedBy() { return processedBy; }
+    public void setProcessedBy(String processedBy) { this.processedBy = processedBy; }
+    public String getPaidConfirmedBy() { return paidConfirmedBy; }
+    public void setPaidConfirmedBy(String paidConfirmedBy) { this.paidConfirmedBy = paidConfirmedBy; }
+    public LocalDateTime getPaidAt() { return paidAt; }
+    public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
+    public String getCancelledBy() { return cancelledBy; }
+    public void setCancelledBy(String cancelledBy) { this.cancelledBy = cancelledBy; }
+    public LocalDateTime getCancelledAt() { return cancelledAt; }
+    public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
 
     public boolean isCancellableByCustomer() {
         return status == OrderStatus.CHO_XAC_NHAN;

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Khách hàng')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <ul th:replace="~{fragments/admin-people :: tabs('customers')}"></ul>
+
+    <a th:href="@{/admin/customers(xepHang=${currentTier.key})}" class="small text-ts"><i class="bi bi-arrow-left"></i> Danh sách khách hàng</a>
+
+    <div class="row g-4 mt-1">
+        <div class="col-lg-4">
+            <div class="card p-3">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="avatar-circle fs-5" style="width:3rem;height:3rem" th:text="${c.initial}">A</span>
+                    <div>
+                        <h5 class="mb-0" th:text="${c.user.fullName}">Tên</h5>
+                        <div class="small text-muted" th:text="'@' + ${c.user.username}">@user</div>
+                    </div>
+                </div>
+                <dl class="row small mb-2">
+                    <dt class="col-5 text-muted fw-normal">Điện thoại</dt><dd class="col-7" th:text="${c.user.phone ?: '–'}"></dd>
+                    <dt class="col-5 text-muted fw-normal">Email</dt><dd class="col-7 text-break" th:text="${c.user.email ?: '–'}"></dd>
+                    <dt class="col-5 text-muted fw-normal">Địa chỉ</dt><dd class="col-7" th:text="${c.user.address ?: '–'}"></dd>
+                    <dt class="col-5 text-muted fw-normal">Tham gia</dt><dd class="col-7" th:text="${#temporals.format(c.user.createdAt, 'dd/MM/yyyy')}"></dd>
+                    <dt class="col-5 text-muted fw-normal">Hạng</dt>
+                    <dd class="col-7"><span class="badge tier-badge" th:classappend="'tier-' + ${c.tier.name()}" th:text="${c.tier.label}"></span>
+                        <div class="text-muted" th:text="${currentTier.name}"></div></dd>
+                </dl>
+                <div class="row g-2 text-center mb-3">
+                    <div class="col-6"><div class="border rounded p-2"><div class="small text-muted">Số đơn</div><strong th:text="${c.orderCount}">0</strong></div></div>
+                    <div class="col-6"><div class="border rounded p-2"><div class="small text-muted">Chi tiêu</div>
+                        <strong th:text="${#numbers.formatDecimal(c.totalSpent, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</strong></div></div>
+                </div>
+                <form th:action="@{/admin/customers/{id}/toggle(id=${c.user.id})}" method="post">
+                    <input type="hidden" name="back" value="detail">
+                    <button class="btn w-100" th:classappend="${c.user.enabled} ? 'btn-outline-secondary' : 'btn-ts'">
+                        <i class="bi" th:classappend="${c.user.enabled} ? 'bi-lock' : 'bi-unlock'"></i>
+                        <span th:text="${c.user.enabled} ? 'Khoá tài khoản' : 'Mở khoá tài khoản'"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <h6 class="text-ts p-3 pb-0 mb-0">Lịch sử đơn hàng</h6>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 mt-2">
+                        <thead><tr><th>Mã đơn</th><th>Ngày</th><th class="text-center">Số ly</th><th class="text-end">Tổng</th><th>Trạng thái</th></tr></thead>
+                        <tbody>
+                        <tr th:each="o : ${orders}">
+                            <td><a class="text-ts" th:href="@{/orders/{id}(id=${o.id})}" th:text="${o.orderCode}"></a></td>
+                            <td class="small" th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="text-center" th:text="${o.totalQuantity}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                            <td><span class="badge" th:classappend="'bg-' + ${o.status.badge}" th:text="${o.status.label}"></span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(orders)}"><td colspan="5" class="text-center text-muted py-3">Khách chưa đặt đơn nào.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card p-3">
+                <h6 class="text-ts">Đánh giá đã viết</h6>
+                <div th:each="r : ${reviews}" class="border-bottom py-2">
+                    <div class="d-flex justify-content-between">
+                        <strong th:text="${r.product.name}">Món</strong>
+                        <span class="small text-muted" th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy')}"></span>
+                    </div>
+                    <div class="text-warning small">
+                        <i th:each="i : ${#numbers.sequence(1, 5)}" class="bi" th:classappend="${i <= r.rating} ? 'bi-star-fill' : 'bi-star'"></i>
+                        <span th:unless="${r.visible}" class="badge bg-secondary ms-1">Đã ẩn</span>
+                    </div>
+                    <div class="small" th:text="${r.comment}"></div>
+                </div>
+                <p th:if="${#lists.isEmpty(reviews)}" class="text-muted mb-0">Chưa có đánh giá.</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

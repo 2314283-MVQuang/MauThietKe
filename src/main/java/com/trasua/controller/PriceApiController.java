@@ -1,6 +1,5 @@
 package com.trasua.controller;
 
-import com.trasua.entity.DrinkSize;
 import com.trasua.entity.Product;
 import com.trasua.pattern.builder.OrderItemBuilder;
 import com.trasua.pattern.decorator.Beverage;
@@ -32,7 +31,7 @@ public class PriceApiController {
 
     @GetMapping("/api/price-preview")
     public PricePreview preview(@RequestParam("productId") Long productId,
-                                @RequestParam(value = "size", defaultValue = "M") DrinkSize size,
+                                @RequestParam(value = "size", defaultValue = "M") String size,
                                 @RequestParam(value = "sugar", defaultValue = "70") int sugar,
                                 @RequestParam(value = "ice", defaultValue = "70") int ice,
                                 @RequestParam(value = "toppingIds", required = false) List<Long> toppingIds,

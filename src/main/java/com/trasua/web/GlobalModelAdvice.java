@@ -18,6 +18,23 @@ public class GlobalModelAdvice {
         this.cart = cart;
     }
 
+    /** Liên hệ của quán (application.properties: app.shop.phone / app.shop.email) - hiện ở chân trang. */
+    @org.springframework.beans.factory.annotation.Value("${app.shop.phone:0333647940}")
+    private String shopPhone;
+
+    @org.springframework.beans.factory.annotation.Value("${app.shop.email:2314283@dlu.edu.vn}")
+    private String shopEmail;
+
+    @ModelAttribute("shopPhone")
+    public String shopPhone() {
+        return shopPhone;
+    }
+
+    @ModelAttribute("shopEmail")
+    public String shopEmail() {
+        return shopEmail;
+    }
+
     @ModelAttribute("cartCount")
     public int cartCount() {
         return cart.getTotalQuantity();

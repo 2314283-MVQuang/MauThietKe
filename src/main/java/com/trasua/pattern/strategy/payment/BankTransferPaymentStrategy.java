@@ -17,12 +17,20 @@ public class BankTransferPaymentStrategy implements PaymentStrategy {
     private final String accountNumber;
     private final String accountName;
     private final String qrImageUrl;
+    /** Mã BIN ngân hàng theo NAPAS (Vietcombank = 970436). */
+    private final String bankBin;
 
     public BankTransferPaymentStrategy(String bankName, String accountNumber, String accountName, String qrImageUrl) {
+        this(bankName, accountNumber, accountName, qrImageUrl, "970436");
+    }
+
+    public BankTransferPaymentStrategy(String bankName, String accountNumber, String accountName, String qrImageUrl,
+                                       String bankBin) {
         this.bankName = bankName;
         this.accountNumber = accountNumber;
         this.accountName = accountName;
         this.qrImageUrl = qrImageUrl;
+        this.bankBin = bankBin;
     }
 
     @Override
@@ -42,4 +50,22 @@ public class BankTransferPaymentStrategy implements PaymentStrategy {
     public String getQrImageUrl() {
         return qrImageUrl;
     }
+
+    /** VietQR tới STK của quán, kèm đúng số tiền của đơn và nội dung = mã đơn. */
+    @Override
+    public String buildQrPayload(java.math.BigDecimal amount, String note) {
+        if (bankBin == null || bankBin.isBlank() || accountNumber == null || accountNumber.isBlank()) {
+            return null;
+        }
+        return VietQr.forBankAccount(bankBin.trim(), accountNumber.trim(), amount, note);
+    }
+
+    @Override
+    public String getQrReceiver() {
+        return bankName + " · STK " + accountNumber + " · " + accountName;
+    }
+
+    public String getBankName() { return bankName; }
+    public String getAccountNumber() { return accountNumber; }
+    public String getAccountName() { return accountName; }
 }

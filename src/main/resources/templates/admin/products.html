@@ -31,7 +31,11 @@
                     </td>
                     <td th:text="${p.category.name}"></td>
                     <td class="text-end" th:text="${#numbers.formatDecimal(p.priceM, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
-                    <td class="text-end" th:text="${#numbers.formatDecimal(p.priceL, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                    <td class="text-end">
+                        <span th:text="${#numbers.formatDecimal(p.priceL, 1, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                        <div th:each="x : ${p.extraSizes}" class="small text-muted"
+                             th:text="${x.name} + ': ' + ${#numbers.formatDecimal(x.price, 1, 'POINT', 0, 'COMMA')} + 'đ'"></div>
+                    </td>
                     <td><span th:replace="~{fragments/stars :: stars(${p.ratingAvg}, ${p.ratingCount})}"></span></td>
                     <td>
                         <span th:if="${p.available}" class="badge bg-success">Đang bán</span>

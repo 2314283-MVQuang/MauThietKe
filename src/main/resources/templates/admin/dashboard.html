@@ -71,15 +71,59 @@
         </div>
 
         <div class="col-lg-5">
-            <div class="card p-3 mb-4">
-                <h6 class="text-ts">Top đồ uống bán chạy</h6>
-                <ol class="mb-0 ps-3">
-                    <li th:each="b : ${bestSellers}" class="mb-1">
-                        <span th:text="${b.productName()}"></span>
-                        <small class="text-muted" th:text="'- ' + ${b.quantity()} + ' ly - ' + ${#numbers.formatDecimal(b.revenue(), 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
+            <a th:href="@{/admin/payroll}" class="text-decoration-none">
+                <div class="card stat-card payroll-total p-3 mb-4">
+                    <div class="stat-label">Lương nhân viên phải trả tháng này</div>
+                    <div class="stat-value" th:text="${#numbers.formatDecimal(payrollTotal, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div>
+                    <div class="small" th:text="${payrollHours} + ' giờ làm · ' + ${payrollWorking} + ' người đang trong ca'"></div>
+                </div>
+            </a>
+            <div class="card p-3 mb-4" id="bestSellers">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                    <h6 class="text-ts mb-0">Top đồ uống bán chạy</h6>
+                    <!-- Chọn kiểu thống kê: ngày / tuần / tháng / tất cả -->
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Kiểu thống kê">
+                        <a th:each="m : ${ {'day','week','month','all'} }" class="btn"
+                           th:classappend="${bsPeriod.mode == m} ? 'btn-ts' : 'btn-outline-ts'"
+                           th:href="@{/admin(bs=${m}, bsDate=${bsPeriod.inputValue})} + '#bestSellers'"
+                           th:text="${m == 'day'} ? 'Ngày' : (${m == 'week'} ? 'Tuần' : (${m == 'month'} ? 'Tháng' : 'Tất cả'))">Ngày</a>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mb-3" th:unless="${bsPeriod.mode == 'all'}">
+                    <a class="btn btn-sm btn-outline-ts" th:href="@{/admin} + '?' + ${bsPeriod.prevQuery} + '#bestSellers'" title="Trước">
+                        <i class="bi bi-chevron-left"></i></a>
+                    <form th:action="@{/admin} + '#bestSellers'" method="get" class="flex-grow-1">
+                        <input type="hidden" name="bs" th:value="${bsPeriod.mode}">
+                        <input th:if="${bsPeriod.mode == 'month'}" type="month" name="bsDate" class="form-control form-control-sm"
+                               th:value="${bsPeriod.inputValue}" th:max="${bsPeriod.maxMonth}" onchange="this.form.submit()" aria-label="Chọn tháng">
+                        <input th:unless="${bsPeriod.mode == 'month'}" type="date" name="bsDate" class="form-control form-control-sm"
+                               th:value="${bsPeriod.inputValue}" th:max="${bsPeriod.maxDate}" onchange="this.form.submit()"
+                               th:attr="aria-label=(${bsPeriod.mode == 'week'} ? 'Chọn một ngày trong tuần' : 'Chọn ngày')">
+                    </form>
+                    <a th:if="${bsPeriod.nextQuery != null}" class="btn btn-sm btn-outline-ts"
+                       th:href="@{/admin} + '?' + ${bsPeriod.nextQuery} + '#bestSellers'" title="Sau"><i class="bi bi-chevron-right"></i></a>
+                    <span th:if="${bsPeriod.nextQuery == null}" class="btn btn-sm btn-outline-secondary disabled"><i class="bi bi-chevron-right"></i></span>
+                </div>
+
+                <div class="small text-muted mb-2">
+                    <span class="fw-semibold text-ts" th:text="${bsPeriod.label}">Tháng 10/2026</span>
+                    <span th:unless="${#lists.isEmpty(bestSellers)}" th:text="' · top 5: ' + ${bsTotalQty} + ' ly (đơn hoàn thành)'"></span>
+                </div>
+
+                <ol class="mb-0 ps-0 best-list">
+                    <li th:each="b, st : ${bestSellers}" class="best-row">
+                        <span class="best-rank" th:classappend="'rank-' + ${st.count}" th:text="${st.count}">1</span>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between gap-2">
+                                <span class="fw-semibold" th:text="${b.productName()}">Bạc xỉu</span>
+                                <small class="text-muted text-nowrap" th:text="${b.quantity()} + ' ly · ' + ${#numbers.formatDecimal(b.revenue(), 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
+                            </div>
+                            <div class="best-bar"><div th:style="'width:' + ${b.quantity() * 100 / bsMaxQty} + '%'"></div></div>
+                        </div>
                     </li>
                 </ol>
-                <p th:if="${#lists.isEmpty(bestSellers)}" class="text-muted mb-0">Chưa có dữ liệu.</p>
+                <p th:if="${#lists.isEmpty(bestSellers)}" class="text-muted mb-0">Không có đơn hoàn thành trong khoảng này.</p>
             </div>
 
             <div class="card p-3">

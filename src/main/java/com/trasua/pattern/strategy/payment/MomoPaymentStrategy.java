@@ -17,10 +17,17 @@ public class MomoPaymentStrategy implements PaymentStrategy {
 
     private final String accountName;
     private final String qrImageUrl;
+    /** Nội dung đọc từ mã QR MoMo tĩnh của quán (chuẩn VietQR). */
+    private final String qrBasePayload;
 
     public MomoPaymentStrategy(String accountName, String qrImageUrl) {
+        this(accountName, qrImageUrl, null);
+    }
+
+    public MomoPaymentStrategy(String accountName, String qrImageUrl, String qrBasePayload) {
         this.accountName = accountName;
         this.qrImageUrl = qrImageUrl;
+        this.qrBasePayload = qrBasePayload;
     }
 
     @Override
@@ -39,4 +46,20 @@ public class MomoPaymentStrategy implements PaymentStrategy {
     public String getQrImageUrl() {
         return qrImageUrl;
     }
+
+    /** Lấy QR MoMo tĩnh của quán, gắn thêm số tiền + nội dung -> QR động (quét bằng MoMo hoặc app ngân hàng). */
+    @Override
+    public String buildQrPayload(java.math.BigDecimal amount, String note) {
+        if (qrBasePayload == null || !VietQr.isValid(qrBasePayload.trim())) {
+            return null;
+        }
+        return VietQr.withAmount(qrBasePayload.trim(), amount, note);
+    }
+
+    @Override
+    public String getQrReceiver() {
+        return "Ví MoMo · " + accountName;
+    }
+
+    public String getAccountName() { return accountName; }
 }

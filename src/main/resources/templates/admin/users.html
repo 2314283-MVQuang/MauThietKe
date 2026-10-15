@@ -6,6 +6,7 @@
 
 <main class="container py-4">
     <div th:replace="~{fragments/layout :: alerts}"></div>
+    <ul th:replace="~{fragments/admin-people :: tabs('users')}"></ul>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="text-ts mb-0"><i class="bi bi-people"></i> Tài khoản &amp; phân quyền</h3>
         <a th:href="@{/admin/users/new}" class="btn btn-ts"><i class="bi bi-person-plus"></i> Thêm tài khoản</a>

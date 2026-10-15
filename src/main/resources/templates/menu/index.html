@@ -172,7 +172,7 @@
                      th:attr="data-cat=${p.category.id},data-name=${p.name}"
                      th:hidden="${(selectedCategory != null and p.category.id != selectedCategory)
                                  or (q != null and !#strings.isEmpty(q) and !#strings.containsIgnoreCase(p.name, q))}">
-                    <article class="card drink-card h-100 reveal" th:classappend="'reveal-delay-' + ${st.index % 4}"
+                    <article class="card drink-card h-100 reveal" th:classappend="'reveal-delay-' + ${st.index % 4} + (${p.available} ? '' : ' sold-out')"
                              th:style="'view-transition-name: card-' + ${p.id}">
                         <a th:href="@{/products/{id}(id=${p.id})}" class="drink-thumb text-decoration-none"
                            th:classappend="${p.imageUrl} ? 'photo-frame'">
@@ -181,6 +181,7 @@
                             <span th:unless="${p.imageUrl}">🧋</span>
                             <span class="chip-cat" th:text="${p.category.name}">Trà sữa</span>
                             <span class="chip-sig" th:if="${p.signature}"><i class="bi bi-stars"></i> Signature</span>
+                            <span class="chip-soldout" th:unless="${p.available}">Tạm hết</span>
                         </a>
                         <div class="card-body d-flex flex-column">
                             <h3 class="card-title mb-1">
@@ -194,10 +195,14 @@
                                 <div>
                                     <div class="drink-price" th:text="${#numbers.formatDecimal(p.priceM, 1, 'POINT', 0, 'COMMA')} + 'đ'">25.000đ</div>
                                     <small class="text-muted" th:text="'Size L ' + ${#numbers.formatDecimal(p.priceL, 1, 'POINT', 0, 'COMMA')} + 'đ'"></small>
+                                    <small class="text-muted d-block" th:unless="${#lists.isEmpty(p.extraSizes)}"
+                                           th:text="'+ ' + ${#lists.size(p.extraSizes)} + ' size khác'"></small>
                                 </div>
 
                                 <!-- Thêm nhanh theo công thức của DrinkDirector (Builder Pattern) -->
-                                <div class="dropdown quick-add" sec:authorize="isAuthenticated()">
+                                <span th:unless="${p.available}" class="btn btn-round px-3 btn-secondary disabled" title="Tạm hết">
+                                    <i class="bi bi-slash-circle"></i></span>
+                                <div class="dropdown quick-add" sec:authorize="isAuthenticated()" th:if="${p.available}">
                                     <button class="btn btn-ts btn-round px-3" type="button" data-bs-toggle="dropdown"
                                             aria-expanded="false" th:attr="aria-label='Thêm nhanh ' + ${p.name}">
                                         <i class="bi bi-plus-lg"></i>

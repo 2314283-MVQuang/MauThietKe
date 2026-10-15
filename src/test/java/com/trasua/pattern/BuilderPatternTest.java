@@ -47,7 +47,7 @@ class BuilderPatternTest {
     @Test
     void giaTriMacDinhKhiKhongGoiBuocNao() {
         OrderItem item = OrderItemBuilder.forProduct(traSua).build();
-        assertEquals(DrinkSize.M, item.getSize());
+        assertEquals("M", item.getSize());
         assertEquals(70, item.getSugarLevel());
         assertEquals(1, item.getQuantity());
     }
@@ -66,7 +66,7 @@ class BuilderPatternTest {
         OrderItem lessSweet = director.makeLessSweet(traSua);
         assertEquals(30, lessSweet.getSugarLevel());
         OrderItem special = director.makeSpecial(traSua, List.of(tranChau));
-        assertEquals(DrinkSize.L, special.getSize());
+        assertEquals("L", special.getSize());
         assertEquals(0, BigDecimal.valueOf(37000).compareTo(special.getUnitPrice()));
     }
 

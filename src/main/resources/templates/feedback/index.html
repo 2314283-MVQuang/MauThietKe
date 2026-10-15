@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Góp ý món')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <h3 class="text-ts mb-1"><i class="bi bi-chat-heart"></i> Góp ý để quán làm món ngon hơn</h3>
+            <p class="text-muted">Món quá ngọt, trân châu chưa dẻo, đá nhiều…? Cứ nói thật – quán đọc từng góp ý và sẽ phản hồi bạn tại đây.</p>
+
+            <div class="card p-3 p-md-4 mb-4" th:if="${isCustomer}">
+                <form th:action="@{/feedback}" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label">Món bạn muốn góp ý</label>
+                            <select name="productId" class="form-select">
+                                <option value="">— Góp ý chung cho quán —</option>
+                                <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}"
+                                        th:selected="${selectedProductId != null and selectedProductId == p.id}">Món</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Về vấn đề</label>
+                            <select name="topic" class="form-select">
+                                <option th:each="t : ${topics}" th:value="${t}" th:text="${t.label}">Hương vị</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Nội dung góp ý</label>
+                            <textarea name="content" class="form-control" rows="4" maxlength="1000" minlength="10" required
+                                      placeholder="VD: Trà sữa khoai môn hơi ngọt, nếu giảm đường mặc định xuống 50% sẽ vừa hơn."
+                                      th:text="${draft}"></textarea>
+                        </div>
+                    </div>
+                    <button class="btn btn-ts mt-3"><i class="bi bi-send"></i> Gửi góp ý</button>
+                </form>
+            </div>
+
+            <h5 class="mb-2" th:if="${isCustomer}">Góp ý của bạn</h5>
+            <div th:each="f : ${mine}" class="card p-3 mb-2 feedback-card">
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <div>
+                        <strong th:text="${f.product != null} ? ${f.product.name} : 'Góp ý chung'">Món</strong>
+                        <span class="badge badge-soft ms-1" th:text="${f.topic.label}">Hương vị</span>
+                    </div>
+                    <span class="badge" th:classappend="'bg-' + ${f.status.badge}" th:text="${f.status.label}">Mới gửi</span>
+                </div>
+                <p class="mb-1 mt-2" th:text="${f.content}">Nội dung</p>
+                <div class="small text-muted" th:text="'Gửi lúc ' + ${#temporals.format(f.createdAt, 'HH:mm dd/MM/yyyy')}"></div>
+                <div th:if="${f.adminReply}" class="shop-reply mt-2">
+                    <div class="small fw-semibold"><i class="bi bi-shop"></i> Quán phản hồi
+                        <span class="text-muted fw-normal" th:text="'· ' + ${#temporals.format(f.repliedAt, 'HH:mm dd/MM')}"></span></div>
+                    <div th:text="${f.adminReply}">Cảm ơn bạn...</div>
+                </div>
+                <form th:if="${f.status.name() == 'MOI'}" th:action="@{/feedback/{id}/delete(id=${f.id})}" method="post" class="mt-1"
+                      onsubmit="return confirm('Xoá góp ý này?');">
+                    <button class="btn btn-link btn-sm text-danger p-0"><i class="bi bi-trash"></i> Xoá</button>
+                </form>
+            </div>
+            <p th:if="${isCustomer and #lists.isEmpty(mine)}" class="text-muted">Bạn chưa gửi góp ý nào.</p>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card p-3 mb-4 contact-card">
+                <h6 class="text-ts"><i class="bi bi-headset"></i> Liên hệ trực tiếp với quán</h6>
+                <a class="d-flex align-items-center gap-2 text-decoration-none mb-2" th:href="'tel:' + ${shopPhone}">
+                    <span class="contact-icon"><i class="bi bi-telephone-fill"></i></span>
+                    <span><span class="small text-muted d-block">Điện thoại / Zalo</span><strong th:text="${shopPhone}">0333647940</strong></span>
+                </a>
+                <a class="d-flex align-items-center gap-2 text-decoration-none" th:href="'mailto:' + ${shopEmail}">
+                    <span class="contact-icon"><i class="bi bi-envelope-fill"></i></span>
+                    <span><span class="small text-muted d-block">Email</span><strong th:text="${shopEmail}">mail</strong></span>
+                </a>
+            </div>
+
+            <div class="card p-3">
+                <h6 class="text-ts"><i class="bi bi-stars"></i> Quán đã cải thiện nhờ góp ý</h6>
+                <div th:each="f : ${improved}" class="border-bottom py-2">
+                    <div class="small"><strong th:text="${f.product != null} ? ${f.product.name} : 'Góp ý chung'"></strong>
+                        <span class="text-muted" th:text="'· ' + ${f.customerShortName} + ' góp ý'"></span></div>
+                    <div class="small fst-italic text-muted" th:text="'“' + ${f.content} + '”'"></div>
+                    <div class="small mt-1" th:if="${f.adminReply}"><i class="bi bi-check2-circle text-success"></i>
+                        <span th:text="${f.adminReply}"></span></div>
+                </div>
+                <p th:if="${#lists.isEmpty(improved)}" class="text-muted small mb-0">Chưa có – góp ý của bạn có thể là cái đầu tiên!</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

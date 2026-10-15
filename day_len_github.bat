@@ -30,13 +30,15 @@ if errorlevel 1 (
 )
 
 git add -A
-git commit -m "Web quan ly quan tra sua - Spring Boot + PostgreSQL (Builder, Decorator, Strategy)"
+git commit -m "Cap nhat: cham cong & luong, quan ly KH/NV, xu ly don theo ngay & chot ket, QR thanh toan, con/het mon, topping x2, gop y, size tuy chinh, top ban chay theo ngay/tuan/thang"
 git branch -M main
 git remote get-url origin >nul 2>&1 || git remote add origin https://github.com/2314283-MVQuang/MauThietKe.git
 echo.
 echo === Dang day len GitHub (lan dau se hien cua so dang nhap GitHub) ===
-git push -u origin main
-if errorlevel 1 (
+git push -u origin main > push.log 2>&1
+set PUSH_ERR=%errorlevel%
+type push.log
+if not "%PUSH_ERR%"=="0" (
   echo.
   echo  Day len THAT BAI - xem thong bao loi o tren.
 ) else (

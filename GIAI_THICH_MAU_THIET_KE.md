@@ -235,7 +235,7 @@ Bấm "Đặt hàng" ─► OrderService.checkout()
    vào "Xử lý đơn" chuyển đơn qua các trạng thái.
 6. Đăng nhập `admin / admin123` → xem thống kê, thêm topping mới → quay lại menu thấy topping dùng được ngay
    mà không sửa code **(Decorator + Open/Closed)**.
-7. Mở `src/test/java/com/trasua/pattern/*Test.java` và chạy `mvn test` – 18 test cho 3 mẫu.
+7. Mở `src/test/java/com/trasua/pattern/*Test.java` và chạy `mvn test` – các test cho 3 mẫu (kể cả tính lương & xếp hạng khách).
 
 ## 6. Câu hỏi thầy có thể hỏi
 
@@ -255,3 +255,63 @@ Builder tạo đối tượng *qua nhiều bước*, cùng một lớp sản ph�
 **Nếu thêm khuyến mãi "giảm 20% sau 21h"?** Viết `HappyHourDiscountStrategy implements DiscountStrategy`,
 thêm 1 giá trị enum và 1 nhánh trong `DiscountStrategyFactory`. `PriceCalculator`, `OrderBuilder`,
 giỏ hàng **không phải sửa**.
+
+---
+
+## 7. Giai đoạn 2 – Chấm công & tính lương (Tuấn), Quản lý khách hàng & nhân viên (Thuận)
+
+### 7.1 STRATEGY + DECORATOR – tính lương nhân viên
+
+**Vấn đề:** nhân viên bán thời gian trả theo giờ, nhân viên toàn thời gian có lương cứng + làm thêm;
+ngoài ra còn phụ cấp cuối tuần, thưởng chuyên cần… Viết hết bằng `if/else` thì mỗi lần đổi chính sách lương phải sửa cả khối code.
+
+| Vai trò | Lớp |
+|---|---|
+| Strategy (interface) | `pattern/strategy/salary/SalaryStrategy` |
+| Concrete Strategy | `PartTimeHourlyStrategy` (giờ × đơn giá từng ca), `FullTimeMonthlyStrategy` (lương cứng + giờ vượt 208h × 1,5) |
+| Context | `PayrollCalculator` (`setStrategy(...)` đổi cách tính lúc chạy) |
+| Decorator (lớp cha) | `pattern/decorator/salary/SalaryDecorator` – bọc một `SalaryStrategy` |
+| Concrete Decorator | `PhuCapCuoiTuanDecorator` (+20% giờ T7/CN), `ThuongChuyenCanDecorator` (≥ 20 ca: +200.000đ) |
+| Chọn & lắp ráp | `SalaryStrategyFactory.forType(EmploymentType)` |
+
+```java
+// Bán thời gian: lương theo giờ, khoác thêm phụ cấp cuối tuần rồi thưởng chuyên cần
+SalaryStrategy s = new ThuongChuyenCanDecorator(
+                     new PhuCapCuoiTuanDecorator(
+                       new PartTimeHourlyStrategy()));
+SalaryBreakdown bangLuong = new PayrollCalculator(s).calculate(input);   // các khoản + tổng
+```
+
+- Mỗi Decorator gọi `wrapped.calculate()` trước rồi **cộng thêm 1 dòng** vào bảng lương – giống `ToppingDecorator` cộng giá topping.
+- Đơn giá được **chụp lại trong từng ca** (`WorkShift.hourlyRate`) nên tăng lương giữa tháng không làm sai tiền các ca cũ.
+- Dùng ở: `PayrollService.calculate()` → trang **Chấm công** của nhân viên (`/staff/timesheet`)
+  và trang **Bảng lương** của quản lý (`/admin/payroll`) – hai bên luôn ra cùng một số.
+- Quản lý bấm **Đã trả lương** → lưu `PayrollRecord` (chốt số liệu, sửa ca sau đó không làm đổi số đã trả).
+
+### 7.2 STRATEGY – xếp hạng khách hàng
+
+| Vai trò | Lớp |
+|---|---|
+| Strategy | `pattern/strategy/tier/CustomerTierStrategy` |
+| Concrete Strategy | `SpendingTierStrategy` (Vàng ≥ 1.000.000đ, Bạc ≥ 300.000đ), `OrderCountTierStrategy` (Vàng ≥ 10 đơn, Bạc ≥ 3 đơn) |
+| Context | `CustomerTierClassifier` (`use("so-don")` đổi tiêu chí lúc chạy) |
+
+Trên trang **Quản lý khách hàng** (`/admin/customers`) chọn ô *Xếp hạng (Strategy)* → cùng danh sách khách,
+hạng đổi theo tiêu chí. Thêm tiêu chí mới = thêm 1 lớp, không sửa `CustomerService`.
+
+### 7.3 Demo nhanh
+1. `nhanvien / nv123` → **Chấm công** → *Vào ca* → *Kết ca*; xem tổng giờ, lương tạm tính, các khoản lương.
+2. `admin / admin123` → **Quản trị → Bảng lương**: tổng tiền phải trả tháng này, giờ làm theo nhân viên / theo ngày,
+   bấm *Đã trả lương*; tháng trước đã chốt sẵn. `nhanvien2 / nv123` là nhân viên toàn thời gian (lương cứng + làm thêm).
+3. **Nhân viên** → mở 1 người → sửa giờ ca quên kết ca (bắt buộc lý do) → lương tính lại ngay.
+4. **Khách hàng** → đổi *Xếp hạng* giữa "Theo tổng chi tiêu" và "Theo số đơn" **(Strategy)**.
+5. Muốn dữ liệu chấm công sạch trước khi demo: bấm đúp `lam_moi_cham_cong.bat` rồi chạy lại `chay_web.bat`.
+
+### 7.4 STRATEGY – mã QR thanh toán kèm đúng số tiền
+- `PaymentStrategy.buildQrPayload(amount, note)`: **mỗi chiến lược tự tạo mã QR của mình**
+  – `BankTransferPaymentStrategy` tạo VietQR tới STK Vietcombank (BIN 970436), `MomoPaymentStrategy`
+  lấy mã QR MoMo tĩnh của quán rồi gắn thêm số tiền, `CashPaymentStrategy` trả về `null` (không có QR).
+- `VietQr` dựng chuỗi theo chuẩn EMVCo/NAPAS: trường 54 = số tiền, 62.08 = nội dung (mã đơn), 63 = CRC16.
+  Test `VietQrTest` kiểm tra CRC khớp với mã QR thật của quán.
+- Ảnh QR: `/qr/order/{id}.png` (thư viện ZXing) – hiện ở trang chi tiết đơn và in trên hoá đơn `/orders/{id}/bill`.
+

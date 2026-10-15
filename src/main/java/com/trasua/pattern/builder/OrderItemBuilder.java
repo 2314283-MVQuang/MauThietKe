@@ -47,11 +47,14 @@ public class OrderItemBuilder {
     /** Các mức đường / đá cho phép (%). */
     public static final List<Integer> LEVELS = List.of(0, 30, 50, 70, 100);
     public static final int MAX_TOPPINGS = 5;
+    /** Mỗi loại topping tối đa bao nhiêu phần (VD 2 phần trân châu). */
+    public static final int MAX_PER_TOPPING = 3;
     public static final int MAX_QUANTITY = 50;
 
     // ---- các "phần" của sản phẩm đang được dựng (có giá trị mặc định) ----
     private final Product product;
-    private DrinkSize size = DrinkSize.M;
+    /** Mã size: M, L hoặc size thêm của món (S, XL...). */
+    private String size = "M";
     private int sugar = 70;
     private int ice = 70;
     private final List<Topping> toppings = new ArrayList<>();
@@ -70,7 +73,13 @@ public class OrderItemBuilder {
     // ------------------- CÁC BƯỚC DỰNG (trả về this để gọi nối) -------------------
 
     public OrderItemBuilder size(DrinkSize size) {
-        this.size = size == null ? DrinkSize.M : size;
+        this.size = size == null ? "M" : size.name();
+        return this;
+    }
+
+    /** Chọn size theo mã (kể cả size quản lý tự thêm, VD "XL"). */
+    public OrderItemBuilder size(String sizeCode) {
+        this.size = sizeCode == null || sizeCode.isBlank() ? "M" : sizeCode.trim().toUpperCase();
         return this;
     }
 
@@ -87,6 +96,14 @@ public class OrderItemBuilder {
     public OrderItemBuilder addTopping(Topping topping) {
         if (topping != null) {
             this.toppings.add(topping);
+        }
+        return this;
+    }
+
+    /** Thêm nhiều phần của cùng một topping (VD 2 phần trân châu = bọc ToppingDecorator 2 lần). */
+    public OrderItemBuilder addTopping(Topping topping, int portions) {
+        for (int i = 0; i < portions; i++) {
+            addTopping(topping);
         }
         return this;
     }
@@ -120,13 +137,13 @@ public class OrderItemBuilder {
         Beverage beverage = new BaseBeverage(product.getName(), product.getPriceM());
 
         // Lớp 1: size (L cộng thêm phần chênh lệch giá)
-        BigDecimal sizeExtra = size == DrinkSize.L
-                ? product.getPriceL().subtract(product.getPriceM())
-                : BigDecimal.ZERO;
-        beverage = new SizeDecorator(beverage, size, sizeExtra);
+        // Chênh lệch so với size M (size L / XL: cộng thêm; size S: âm -> rẻ hơn)
+        BigDecimal sizeExtra = product.priceOfSize(size).orElseThrow().subtract(product.getPriceM());
+        beverage = new SizeDecorator(beverage, "Size " + size, sizeExtra);
 
-        // Lớp 2..n: mỗi topping là một lớp bọc
-        for (Topping topping : toppings) {
+        // Lớp 2..n: mỗi PHẦN topping là một lớp bọc (2 phần trân châu = bọc 2 lần);
+        // gom các phần cùng loại đứng liền nhau để mô tả gọn "Trân châu đen x2"
+        for (Topping topping : groupedToppings()) {
             beverage = new ToppingDecorator(beverage, topping.getName(), topping.getPrice());
         }
 
@@ -145,14 +162,35 @@ public class OrderItemBuilder {
         item.setSize(size);
         item.setSugarLevel(sugar);
         item.setIceLevel(ice);
-        item.setToppings(toppings.isEmpty() ? null
-                : toppings.stream().map(Topping::getName).collect(Collectors.joining(", ")));
+        item.setToppings(toppings.isEmpty() ? null : toppingSummary());
         item.setDescription(beverage.getDescription());
         item.setQuantity(quantity);
         item.setUnitPrice(beverage.getCost());
         item.setLineTotal(beverage.getCost().multiply(BigDecimal.valueOf(quantity)));
         item.setNote(note);
         return item;
+    }
+
+    /** Danh sách topping, các phần cùng loại đứng liền nhau (giữ thứ tự chọn). */
+    private List<Topping> groupedToppings() {
+        java.util.Map<String, List<Topping>> groups = new java.util.LinkedHashMap<>();
+        for (Topping t : toppings) {
+            groups.computeIfAbsent(t.getName(), k -> new ArrayList<>()).add(t);
+        }
+        List<Topping> result = new ArrayList<>();
+        groups.values().forEach(result::addAll);
+        return result;
+    }
+
+    /** "Trân châu đen x2, Kem cheese" */
+    private String toppingSummary() {
+        java.util.Map<String, Long> counts = new java.util.LinkedHashMap<>();
+        for (Topping t : groupedToppings()) {
+            counts.merge(t.getName(), 1L, Long::sum);
+        }
+        return counts.entrySet().stream()
+                .map(e -> e.getValue() > 1 ? e.getKey() + " x" + e.getValue() : e.getKey())
+                .collect(Collectors.joining(", "));
     }
 
     /** Kiểm tra tính hợp lệ TẬP TRUNG tại một chỗ - ưu điểm lớn của Builder. */
@@ -163,6 +201,9 @@ public class OrderItemBuilder {
         if (!product.isAvailable()) {
             throw new IllegalStateException("Món \"" + product.getName() + "\" hiện đang tạm hết");
         }
+        if (product.priceOfSize(size).isEmpty()) {
+            throw new IllegalStateException("Món \"" + product.getName() + "\" không có size " + size);
+        }
         if (!LEVELS.contains(sugar)) {
             throw new IllegalStateException("Mức đường không hợp lệ: " + sugar + "%");
         }
@@ -170,8 +211,15 @@ public class OrderItemBuilder {
             throw new IllegalStateException("Mức đá không hợp lệ: " + ice + "%");
         }
         if (toppings.size() > MAX_TOPPINGS) {
-            throw new IllegalStateException("Mỗi ly chỉ được thêm tối đa " + MAX_TOPPINGS + " topping");
+            throw new IllegalStateException("Mỗi ly chỉ được thêm tối đa " + MAX_TOPPINGS + " phần topping");
         }
+        java.util.Map<String, Long> perTopping = toppings.stream()
+                .collect(Collectors.groupingBy(Topping::getName, Collectors.counting()));
+        perTopping.forEach((name, n) -> {
+            if (n > MAX_PER_TOPPING) {
+                throw new IllegalStateException("Mỗi loại topping tối đa " + MAX_PER_TOPPING + " phần (" + name + ")");
+            }
+        });
         for (Topping topping : toppings) {
             if (!topping.isAvailable()) {
                 throw new IllegalStateException("Topping \"" + topping.getName() + "\" hiện đang tạm hết");

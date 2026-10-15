@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Thanh chọn ngày dùng chung (Xử lý đơn, Tổng kết ngày).
+  picker: com.trasua.web.DayPicker  ·  baseUrl: '/staff/orders'  ·  status: trạng thái đang lọc (có thể null)
+  Ngày CHƯA TỚI được bôi đen, không bấm được; ô chọn ngày cũng chặn ngày tương lai (max = hôm nay).
+-->
+<div th:fragment="picker(baseUrl, status)" class="day-picker card p-2 p-md-3 mb-3">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <div class="btn-group btn-group-sm" role="group">
+            <a th:each="q : ${picker.quicks}" class="btn" th:classappend="${q.active} ? 'btn-ts' : 'btn-outline-ts'"
+               th:href="@{${baseUrl}} + '?' + ${q.query}" th:text="${q.label}">Hôm nay</a>
+        </div>
+        <form th:action="@{${baseUrl}}" method="get" class="d-flex align-items-center gap-1 ms-md-2">
+            <input type="date" name="date" class="form-control form-control-sm" th:value="${picker.selectedIso}"
+                   th:max="${picker.todayIso}" onchange="this.form.submit()" aria-label="Chọn ngày">
+            <input th:if="${status != null}" type="hidden" name="status" th:value="${status}">
+        </form>
+        <div class="ms-auto fw-semibold">
+            <span th:text="${picker.selectedLabel}">Thứ Tư, 14/10/2026</span>
+            <span th:if="${picker.relativeLabel != null}" class="badge badge-soft ms-1" th:text="${picker.relativeLabel}">Hôm nay</span>
+        </div>
+    </div>
+    <div class="day-strip">
+        <a class="day-nav" th:href="@{${baseUrl}} + '?' + ${picker.prevWeekQuery}" title="Tuần trước"><i class="bi bi-chevron-left"></i></a>
+        <th:block th:each="d : ${picker.days}">
+            <span th:if="${d.future}" class="day-chip is-future" title="Ngày chưa tới">
+                <span class="dow" th:text="${d.dow}">T5</span><span class="dm" th:text="${d.dayMonth}">15/10</span><span class="cnt">–</span>
+            </span>
+            <a th:unless="${d.future}" class="day-chip" th:href="@{${baseUrl}} + '?' + ${d.query}"
+               th:classappend="${(d.selected ? 'is-selected ' : '') + (d.today ? 'is-today' : '')}">
+                <span class="dow" th:text="${d.today} ? 'Nay' : ${d.dow}">T2</span>
+                <span class="dm" th:text="${d.dayMonth}">12/10</span>
+                <span class="cnt" th:text="${d.count} + ' đơn'">0 đơn</span>
+            </a>
+        </th:block>
+        <a th:if="${picker.nextWeekQuery != null}" class="day-nav" th:href="@{${baseUrl}} + '?' + ${picker.nextWeekQuery}" title="Tuần sau"><i class="bi bi-chevron-right"></i></a>
+        <span th:if="${picker.nextWeekQuery == null}" class="day-nav disabled"><i class="bi bi-chevron-right"></i></span>
+    </div>
+</div>
+</body>
+</html>

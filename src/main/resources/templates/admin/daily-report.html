@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tổng kết ngày')}"></head>
+<body class="daily-report-page">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h3 class="text-ts mb-0"><i class="bi bi-calculator"></i> Tổng kết hoá đơn &amp; chốt két</h3>
+        <div class="d-flex gap-2 no-print">
+            <a th:href="@{/staff/orders(date=${picker.selectedIso})}" class="btn btn-outline-ts"><i class="bi bi-list-check"></i> Danh sách đơn</a>
+            <button type="button" class="btn btn-outline-ts" onclick="window.print()"><i class="bi bi-printer"></i> In</button>
+        </div>
+    </div>
+
+    <div class="no-print" th:insert="~{fragments/day-picker :: picker('/admin/daily-report', null)}"></div>
+    <h5 class="print-only mb-3" th:text="'Ngày ' + ${picker.selectedLabel}"></h5>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3 h-100"><div class="stat-label">Số đơn trong ngày</div>
+                <div class="stat-value" th:text="${report.orderCount}">0</div>
+                <div class="small text-muted" th:text="${report.completedCount} + ' hoàn thành · ' + ${report.cancelledCount} + ' huỷ'"></div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3 h-100"><div class="stat-label">Doanh thu (đơn hoàn thành)</div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(report.revenue, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div>
+                <div class="small text-muted" th:text="'Đã giảm giá ' + ${#numbers.formatDecimal(report.discountTotal, 1, 'POINT', 0, 'COMMA')} + 'đ'"></div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card payroll-total p-3 h-100"><div class="stat-label">Tiền mặt phải có trong két</div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(report.expectedCash, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div>
+                <div class="small">theo hoá đơn tiền mặt đã thu</div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card p-3 h-100"><div class="stat-label">Chuyển khoản + MoMo</div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(report.expectedTransfer, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div>
+                <div class="small text-muted">đối chiếu với sao kê ngân hàng / MoMo</div></div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- ===== CHỐT KÉT ===== -->
+        <div class="col-lg-5">
+            <div class="card p-3 h-100 closing-card"
+                 th:classappend="${report.closed} ? (${report.closing.matched} ? 'is-ok' : 'is-bad')">
+                <h6 class="text-ts"><i class="bi bi-safe"></i> Chốt két tiền mặt</h6>
+                <div th:if="${report.closed}" class="mb-3">
+                    <div class="d-flex justify-content-between"><span>Theo hoá đơn (lúc chốt)</span>
+                        <strong th:text="${#numbers.formatDecimal(report.closing.expectedCash, 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong></div>
+                    <div class="d-flex justify-content-between"><span>Đếm được</span>
+                        <strong th:text="${#numbers.formatDecimal(report.closing.countedCash, 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong></div>
+                    <div class="d-flex justify-content-between fs-5 mt-1">
+                        <span>Kết quả</span>
+                        <strong th:if="${report.closing.matched}" class="text-success"><i class="bi bi-check-circle-fill"></i> Khớp</strong>
+                        <strong th:if="${report.closing.difference.signum() < 0}" class="text-danger"
+                                th:text="'Thiếu ' + ${#numbers.formatDecimal(report.closing.difference.abs(), 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong>
+                        <strong th:if="${report.closing.difference.signum() > 0}" class="text-warning"
+                                th:text="'Thừa ' + ${#numbers.formatDecimal(report.closing.difference, 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong>
+                    </div>
+                    <div class="small text-muted" th:text="'Chốt bởi ' + ${report.closing.closedBy} + ' lúc ' + ${#temporals.format(report.closing.closedAt, 'HH:mm dd/MM')}"></div>
+                    <div th:if="${report.closing.note}" class="small fst-italic" th:text="'Ghi chú: ' + ${report.closing.note}"></div>
+                    <div th:if="${report.changedAfterClosing}" class="alert alert-warning small py-1 px-2 mt-2 mb-0">
+                        Hoá đơn tiền mặt đã thay đổi sau khi chốt (hiện là
+                        <strong th:text="${#numbers.formatDecimal(report.expectedCash, 1, 'POINT', 0, 'COMMA')} + 'đ'"></strong>) – nên chốt lại.
+                    </div>
+                </div>
+                <form th:action="@{/admin/daily-report/close}" method="post" class="no-print" id="closingForm">
+                    <input type="hidden" name="date" th:value="${picker.selectedIso}">
+                    <label class="form-label small mb-1">Tiền mặt đếm được trong két (đ)</label>
+                    <input type="number" name="countedCash" min="0" step="1000" class="form-control mb-1" id="countedCash"
+                           th:attr="data-expected=${report.expectedCash}" required
+                           th:value="${report.closed} ? ${report.closing.countedCash.toBigInteger()} : ''">
+                    <div class="small mb-2" id="diffPreview">&nbsp;</div>
+                    <input name="note" class="form-control form-control-sm mb-2" placeholder="Ghi chú (VD: nhân viên thối nhầm 10.000đ)"
+                           th:value="${report.closed} ? ${report.closing.note} : ''">
+                    <button class="btn btn-ts w-100" th:text="${report.closed} ? 'Chốt lại' : 'Chốt két ngày này'">Chốt két</button>
+                </form>
+                <form th:if="${report.closed}" th:action="@{/admin/daily-report/reopen}" method="post" class="no-print mt-2"
+                      onsubmit="return confirm('Huỷ biên bản chốt két ngày này?');">
+                    <input type="hidden" name="date" th:value="${picker.selectedIso}">
+                    <button class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-x-circle"></i> Huỷ chốt két</button>
+                </form>
+                <p class="small text-muted mt-2 mb-0">Tiền mặt phải có = tổng các đơn <strong>tiền mặt đã thu</strong>, không tính đơn đã huỷ.
+                    Không tính tiền lẻ để thối đầu ca.</p>
+            </div>
+        </div>
+
+        <!-- ===== THEO HÌNH THỨC & THEO NGƯỜI THU ===== -->
+        <div class="col-lg-7">
+            <div class="card mb-3">
+                <h6 class="text-ts p-3 pb-0 mb-0">Tiền đã thu theo hình thức</h6>
+                <table class="table align-middle mb-0 mt-2">
+                    <thead><tr><th>Hình thức</th><th class="text-center">Số đơn</th><th class="text-end">Số tiền</th></tr></thead>
+                    <tbody>
+                    <tr th:each="p : ${report.payments}">
+                        <td th:text="${p.label()}"></td>
+                        <td class="text-center" th:text="${p.count()}"></td>
+                        <td class="text-end" th:text="${#numbers.formatDecimal(p.amount(), 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                    </tr>
+                    </tbody>
+                    <tfoot><tr class="fw-bold"><td>Tổng đã thu</td><td></td>
+                        <td class="text-end" th:text="${#numbers.formatDecimal(report.collectedTotal, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td></tr></tfoot>
+                </table>
+            </div>
+            <div class="card">
+                <h6 class="text-ts p-3 pb-0 mb-0">Theo nhân viên thu tiền</h6>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 mt-2">
+                        <thead><tr><th>Người thu</th><th class="text-center">Đơn</th><th class="text-end">Tiền mặt</th>
+                            <th class="text-end">CK/MoMo</th><th class="text-center">Đơn huỷ</th></tr></thead>
+                        <tbody>
+                        <tr th:each="c : ${report.cashiers}">
+                            <td><div class="fw-semibold" th:text="${c.fullName}"></div><div class="small text-muted" th:text="${c.username}"></div></td>
+                            <td class="text-center" th:text="${c.orderCount}"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(c.cash, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                            <td class="text-end" th:text="${#numbers.formatDecimal(c.transfer, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                            <td class="text-center">
+                                <span th:if="${c.cancelCount > 0}" class="badge bg-danger"
+                                      th:text="${c.cancelCount} + ' · ' + ${#numbers.formatDecimal(c.cancelledAmount, 1, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                                <span th:if="${c.cancelCount == 0}" class="text-muted">0</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(report.cashiers)}"><td colspan="5" class="text-center text-muted">Chưa thu tiền đơn nào.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CẢNH BÁO ===== -->
+    <div class="card mb-4 border-danger" th:if="${!#lists.isEmpty(report.paidThenCancelled)}">
+        <div class="card-header bg-danger text-white"><i class="bi bi-exclamation-octagon"></i>
+            Đơn đã thu tiền rồi bị huỷ – cần kiểm tra (dấu hiệu quỵt bill)</div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th>Mã đơn</th><th>Tạo lúc</th><th>Huỷ lúc</th><th>Người thu</th><th>Người huỷ</th><th class="text-end">Số tiền</th></tr></thead>
+                <tbody>
+                <tr th:each="o : ${report.paidThenCancelled}">
+                    <td><a class="text-ts" th:href="@{/orders/{id}(id=${o.id})}" th:text="${o.orderCode}"></a></td>
+                    <td th:text="${#temporals.format(o.createdAt, 'HH:mm')}"></td>
+                    <td th:text="${o.cancelledAt != null} ? ${#temporals.format(o.cancelledAt, 'HH:mm')} : '–'"></td>
+                    <td th:text="${o.cashier ?: '–'}"></td>
+                    <td class="fw-semibold" th:text="${o.cancelledBy ?: '–'}"></td>
+                    <td class="text-end fw-bold text-danger" th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <h6 class="text-ts p-3 pb-0 mb-0">Đơn chưa thu tiền / chưa xong
+                    <span class="badge bg-warning text-dark" th:text="${#lists.size(report.unpaid)} + ' chưa thu · ' + ${#lists.size(report.unfinished)} + ' chưa xong'"></span></h6>
+                <ul class="list-group list-group-flush mt-2">
+                    <li class="list-group-item d-flex justify-content-between" th:each="o : ${report.unfinished}">
+                        <span><a class="text-ts" th:href="@{/orders/{id}(id=${o.id})}" th:text="${o.orderCode}"></a>
+                            <span class="badge ms-1" th:classappend="'bg-' + ${o.status.badge}" th:text="${o.status.label}"></span></span>
+                        <span th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between" th:each="o : ${report.unpaid}" th:unless="${!o.status.finished}">
+                        <span><a class="text-ts" th:href="@{/orders/{id}(id=${o.id})}" th:text="${o.orderCode}"></a>
+                            <span class="badge bg-warning text-dark ms-1">Hoàn thành nhưng chưa thu tiền</span></span>
+                        <span th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                    </li>
+                    <li class="list-group-item text-muted" th:if="${report.warningCount - #lists.size(report.paidThenCancelled) == 0}">Không có đơn nào treo. 👍</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <h6 class="text-ts p-3 pb-0 mb-0">Đơn bị huỷ trong ngày</h6>
+                <ul class="list-group list-group-flush mt-2">
+                    <li class="list-group-item d-flex justify-content-between" th:each="o : ${report.cancelled}">
+                        <span><a class="text-ts" th:href="@{/orders/{id}(id=${o.id})}" th:text="${o.orderCode}"></a>
+                            <small class="text-muted" th:text="' · huỷ bởi ' + ${o.cancelledBy ?: 'không rõ'}"></small></span>
+                        <span th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></span>
+                    </li>
+                    <li class="list-group-item text-muted" th:if="${#lists.isEmpty(report.cancelled)}">Không có đơn huỷ.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOÀN BỘ HOÁ ĐƠN ===== -->
+    <div class="card mb-4">
+        <h6 class="text-ts p-3 pb-0 mb-0">Toàn bộ hoá đơn trong ngày</h6>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0 mt-2">
+                <thead><tr><th>Mã đơn</th><th>Giờ</th><th>Hình thức</th><th>Thanh toán</th><th>Người thu</th><th>Trạng thái</th><th class="text-end">Tổng</th></tr></thead>
+                <tbody>
+                <tr th:each="o : ${report.orders}" th:classappend="${o.status.name() == 'DA_HUY'} ? 'text-decoration-line-through text-muted'">
+                    <td><a class="text-ts" th:href="@{/orders/{id}(id=${o.id})}" th:text="${o.orderCode}"></a></td>
+                    <td th:text="${#temporals.format(o.createdAt, 'HH:mm')}"></td>
+                    <td class="small" th:text="${o.orderType.label}"></td>
+                    <td class="small"><span th:text="${o.paymentMethod.label}"></span> ·
+                        <span th:text="${o.paymentStatus.label}"></span></td>
+                    <td class="small" th:text="${o.paymentStatus.name() == 'DA_THANH_TOAN'} ? (${o.cashier} ?: 'khách online') : '–'"></td>
+                    <td><span class="badge" th:classappend="'bg-' + ${o.status.badge}" th:text="${o.status.label}"></span></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(report.orders)}"><td colspan="7" class="text-center text-muted py-3">Ngày này không có hoá đơn.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===== LỊCH SỬ CHỐT KÉT ===== -->
+    <div class="card no-print">
+        <h6 class="text-ts p-3 pb-0 mb-0">Lịch sử chốt két 30 ngày</h6>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0 mt-2">
+                <thead><tr><th>Ngày</th><th class="text-end">Theo hoá đơn</th><th class="text-end">Đếm được</th><th class="text-end">Chênh lệch</th><th>Người chốt</th><th>Ghi chú</th></tr></thead>
+                <tbody>
+                <tr th:each="h : ${history}">
+                    <td><a class="text-ts" th:href="@{/admin/daily-report(date=${h.businessDate})}" th:text="${#temporals.format(h.businessDate, 'dd/MM/yyyy')}"></a></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(h.expectedCash, 1, 'POINT', 0, 'COMMA')}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(h.countedCash, 1, 'POINT', 0, 'COMMA')}"></td>
+                    <td class="text-end fw-semibold" th:classappend="${h.matched} ? 'text-success' : (${h.difference.signum() < 0} ? 'text-danger' : 'text-warning')"
+                        th:text="${h.matched} ? 'Khớp' : ${#numbers.formatDecimal(h.difference, 1, 'POINT', 0, 'COMMA')}"></td>
+                    <td th:text="${h.closedBy}"></td>
+                    <td class="small" th:text="${h.note}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(history)}"><td colspan="6" class="text-center text-muted">Chưa chốt két ngày nào.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script>
+    (function () {
+        const input = document.getElementById('countedCash');
+        const out = document.getElementById('diffPreview');
+        if (!input) return;
+        const expected = Number(input.dataset.expected || 0);
+        const fmt = v => Math.abs(v).toLocaleString('vi-VN') + 'đ';
+        function update() {
+            if (input.value === '') { out.innerHTML = '&nbsp;'; out.className = 'small mb-2'; return; }
+            const diff = Number(input.value) - expected;
+            if (diff === 0) { out.textContent = '✓ Khớp với hoá đơn'; out.className = 'small mb-2 text-success fw-semibold'; }
+            else if (diff < 0) { out.textContent = 'Thiếu ' + fmt(diff) + ' so với hoá đơn'; out.className = 'small mb-2 text-danger fw-semibold'; }
+            else { out.textContent = 'Thừa ' + fmt(diff) + ' so với hoá đơn'; out.className = 'small mb-2 text-warning fw-semibold'; }
+        }
+        input.addEventListener('input', update);
+        update();
+    })();
+</script>
+</body>
+</html>

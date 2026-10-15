@@ -79,7 +79,30 @@
                             <input th:field="*{priceL}" type="number" min="0" step="500" class="form-control" required>
                         </div>
                         <div class="col-12">
-                            <small class="text-muted">Phần chênh lệch L - M được cộng bởi <code>SizeDecorator</code>.</small>
+                            <small class="text-muted">Phần chênh lệch so với size M được cộng (hoặc trừ) bởi <code>SizeDecorator</code>.</small>
+                        </div>
+                        <!-- ===== SIZE THÊM (S, XL...) - mỗi size có giá riêng ===== -->
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label class="form-label mb-1">Size khác <small class="text-muted">(tuỳ chọn, VD: S, XL)</small></label>
+                                <button type="button" class="btn btn-sm btn-outline-ts" id="addSizeBtn"><i class="bi bi-plus-lg"></i> Thêm size</button>
+                            </div>
+                            <div id="sizeRows">
+                                <div class="row g-2 mb-2 size-row" th:each="r : ${sizeRows}">
+                                    <div class="col-4"><input name="sizeName" class="form-control" maxlength="5" placeholder="Tên size" th:value="${r.name()}" required></div>
+                                    <div class="col-6"><input name="sizePrice" type="number" min="1000" step="500" class="form-control" placeholder="Giá (đ)" th:value="${r.price()}" required></div>
+                                    <div class="col-2 d-grid"><button type="button" class="btn btn-outline-danger remove-size" title="Xoá size"><i class="bi bi-trash"></i></button></div>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block" id="noSizeHint" th:classappend="${#lists.isEmpty(sizeRows)} ? '' : 'd-none'">
+                                Chưa có size thêm – món chỉ bán size M và L.</small>
+                            <template id="sizeRowTpl">
+                                <div class="row g-2 mb-2 size-row">
+                                    <div class="col-4"><input name="sizeName" class="form-control" maxlength="5" placeholder="Tên size (S, XL...)" required></div>
+                                    <div class="col-6"><input name="sizePrice" type="number" min="1000" step="500" class="form-control" placeholder="Giá size này (đ)" required></div>
+                                    <div class="col-2 d-grid"><button type="button" class="btn btn-outline-danger remove-size" title="Xoá size"><i class="bi bi-trash"></i></button></div>
+                                </div>
+                            </template>
                         </div>
                         <div class="col-12">
                             <div class="form-check">
@@ -247,6 +270,24 @@
                 useFile(file);
                 modal.hide();
             }, 'image/jpeg', 0.88);
+        });
+    })();
+</script>
+<script>
+    (function () {
+        const box = document.getElementById('sizeRows');
+        const tpl = document.getElementById('sizeRowTpl');
+        const hint = document.getElementById('noSizeHint');
+        if (!box || !tpl) return;
+        const sync = () => hint.classList.toggle('d-none', box.querySelectorAll('.size-row').length > 0);
+        document.getElementById('addSizeBtn').addEventListener('click', () => {
+            box.appendChild(tpl.content.cloneNode(true));
+            box.lastElementChild.querySelector('input').focus();
+            sync();
+        });
+        box.addEventListener('click', e => {
+            const btn = e.target.closest('.remove-size');
+            if (btn) { btn.closest('.size-row').remove(); sync(); }
         });
     })();
 </script>

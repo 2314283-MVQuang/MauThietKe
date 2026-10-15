@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Xử lý đơn')}"></head>
 <body>
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
@@ -8,27 +9,67 @@
     <div th:replace="~{fragments/layout :: alerts}"></div>
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <h3 class="text-ts mb-0"><i class="bi bi-list-check"></i> Xử lý đơn hàng</h3>
-        <a th:href="@{/}" class="btn btn-ts"><i class="bi bi-plus-circle"></i> Tạo đơn tại quầy</a>
+        <div class="d-flex gap-2">
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/daily-report(date=${picker.selectedIso})}" class="btn btn-outline-ts">
+                <i class="bi bi-calculator"></i> Tổng kết &amp; chốt két</a>
+            <a th:href="@{/}" class="btn btn-ts"><i class="bi bi-plus-circle"></i> Tạo đơn tại quầy</a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/day-picker :: picker('/staff/orders', ${selectedStatus})}"></div>
+
+    <div th:if="${olderUnfinished > 0}" class="alert alert-warning d-flex flex-wrap align-items-center gap-2 py-2">
+        <i class="bi bi-hourglass-split"></i>
+        Còn <strong th:text="${olderUnfinished}">2</strong> đơn chưa xử lý xong từ những ngày trước.
+        <a class="alert-link" th:href="@{/staff/orders(date=${olderUnfinishedDate})}">Xem ngày
+            <span th:text="${#temporals.format(olderUnfinishedDate, 'dd/MM')}"></span></a>
+    </div>
+
+    <!-- Tổng kết nhanh của ngày đang xem -->
+    <div class="row g-2 mb-3 day-summary">
+        <div class="col-6 col-md">
+            <div class="card stat-card p-2 px-3"><div class="stat-label">Số đơn</div>
+                <div class="stat-value fs-4" th:text="${report.orderCount}">0</div></div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="card stat-card p-2 px-3"><div class="stat-label">Hoàn thành / Huỷ</div>
+                <div class="stat-value fs-4" th:text="${report.completedCount} + ' / ' + ${report.cancelledCount}">0</div></div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="card stat-card p-2 px-3"><div class="stat-label">Doanh thu (hoàn thành)</div>
+                <div class="stat-value fs-4" th:text="${#numbers.formatDecimal(report.revenue, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div></div>
+        </div>
+        <div class="col-6 col-md">
+            <div class="card stat-card p-2 px-3"><div class="stat-label">Tiền mặt đã thu</div>
+                <div class="stat-value fs-4 text-peach" th:text="${#numbers.formatDecimal(report.expectedCash, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div></div>
+        </div>
+        <div class="col-12 col-md">
+            <div class="card stat-card p-2 px-3"><div class="stat-label">Chuyển khoản + MoMo</div>
+                <div class="stat-value fs-4" th:text="${#numbers.formatDecimal(report.expectedTransfer, 1, 'POINT', 0, 'COMMA')} + 'đ'">0đ</div></div>
+        </div>
     </div>
 
     <div class="category-pills mb-3">
-        <a th:href="@{/staff/orders}" class="btn btn-sm"
-           th:classappend="${selectedStatus == null} ? 'btn-ts' : 'btn-outline-ts'">Tất cả</a>
-        <a th:each="s : ${statuses}" th:href="@{/staff/orders(status=${s})}" class="btn btn-sm"
-           th:classappend="${selectedStatus == s} ? 'btn-ts' : 'btn-outline-ts'" th:text="${s.label}"></a>
+        <a th:href="@{/staff/orders(date=${picker.selectedIso})}" class="btn btn-sm"
+           th:classappend="${selectedStatus == null} ? 'btn-ts' : 'btn-outline-ts'"
+           th:text="'Tất cả (' + ${report.orderCount} + ')'">Tất cả</a>
+        <a th:each="s : ${statuses}" th:href="@{/staff/orders(date=${picker.selectedIso}, status=${s})}" class="btn btn-sm"
+           th:classappend="${selectedStatus == s} ? 'btn-ts' : 'btn-outline-ts'"
+           th:text="${s.label} + ' (' + ${report.statusCounts.get(s)} + ')'"></a>
     </div>
 
-    <div th:if="${#lists.isEmpty(orders)}" class="alert alert-light">Không có đơn nào.</div>
+    <div th:if="${#lists.isEmpty(orders)}" class="alert alert-light">Không có đơn nào trong ngày này.</div>
 
-    <div class="card" th:unless="${#lists.isEmpty(orders)}">
+    <div class="card" th:unless="${#lists.isEmpty(orders)}"
+         th:with="back=${dateQuery} + (${selectedStatus != null} ? '&status=' + ${selectedStatus} : '')">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead><tr><th>Mã đơn</th><th>Thời gian</th><th>Khách</th><th>Hình thức</th><th>Món</th>
+                <thead><tr><th>Mã đơn</th><th>Giờ</th><th>Khách</th><th>Hình thức</th><th>Món</th>
                     <th class="text-end">Tổng</th><th>Trạng thái</th><th>Thanh toán</th><th style="min-width:210px">Thao tác</th></tr></thead>
                 <tbody>
                 <tr th:each="o : ${orders}" th:with="next=${o.status.next(o.orderType)}">
                     <td><a th:href="@{/orders/{id}(id=${o.id})}" class="fw-semibold text-ts" th:text="${o.orderCode}"></a></td>
-                    <td class="small" th:text="${#temporals.format(o.createdAt, 'dd/MM HH:mm')}"></td>
+                    <td class="small" th:text="${#temporals.format(o.createdAt, 'HH:mm')}"></td>
                     <td>
                         <div th:text="${o.customerName}"></div>
                         <small class="text-muted" th:text="${o.phone}"></small>
@@ -38,22 +79,30 @@
                         <div th:each="i : ${o.items}" th:text="${i.quantity} + ' x ' + ${i.description}"></div>
                     </td>
                     <td class="text-end price" th:text="${#numbers.formatDecimal(o.total, 1, 'POINT', 0, 'COMMA')} + 'đ'"></td>
-                    <td><span class="badge" th:classappend="'bg-' + ${o.status.badge}" th:text="${o.status.label}"></span></td>
+                    <td>
+                        <span class="badge" th:classappend="'bg-' + ${o.status.badge}" th:text="${o.status.label}"></span>
+                        <div th:if="${o.cancelledBy != null}" class="small text-muted" th:text="'huỷ bởi ' + ${o.cancelledBy}"></div>
+                    </td>
                     <td>
                         <span class="badge" th:classappend="'bg-' + ${o.paymentStatus.badge}" th:text="${o.paymentStatus.label}"></span>
                         <div class="small text-muted" th:text="${o.paymentMethod.label}"></div>
+                        <div th:if="${o.paymentStatus.name() == 'DA_THANH_TOAN' and o.cashier != null}" class="small text-muted"
+                             th:text="'thu: ' + ${o.cashier}"></div>
                     </td>
                     <td>
                         <div class="d-flex flex-wrap gap-1">
                             <form th:if="${next != null}" th:action="@{/staff/orders/{id}/next(id=${o.id})}" method="post">
+                                <input type="hidden" name="back" th:value="${back}">
                                 <button class="btn btn-sm btn-ts" th:text="'→ ' + ${next.label}">Tiếp</button>
                             </form>
                             <form th:if="${o.paymentStatus.name() == 'CHUA_THANH_TOAN' and o.status.name() != 'DA_HUY'}"
                                   th:action="@{/staff/orders/{id}/paid(id=${o.id})}" method="post">
+                                <input type="hidden" name="back" th:value="${back}">
                                 <button class="btn btn-sm btn-outline-success" title="Xác nhận đã thanh toán"><i class="bi bi-cash-coin"></i></button>
                             </form>
                             <form th:unless="${o.status.finished}" th:action="@{/staff/orders/{id}/cancel(id=${o.id})}" method="post"
                                   onsubmit="return confirm('Huỷ đơn này?')">
+                                <input type="hidden" name="back" th:value="${back}">
                                 <button class="btn btn-sm btn-outline-danger" title="Huỷ"><i class="bi bi-x-lg"></i></button>
                             </form>
                         </div>
