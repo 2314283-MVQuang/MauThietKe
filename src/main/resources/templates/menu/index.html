@@ -1,14 +1,18 @@
 <!DOCTYPE html>
+<!-- landingNav: chèn hàng neo vào navbar; pageDescription/ogImage: thẻ meta SEO & chia sẻ (xem fragments/layout :: head) -->
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Trà sữa tươi mát Đà Lạt')}"></head>
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:with="landingNav=true,
+               pageDescription='Trà sữa, trà trái cây, cà phê pha mới mỗi ly tại Phường 8, Đà Lạt. Tuỳ chỉnh size, đường, đá, topping; đặt online, trả tiền mặt hoặc quét QR.',
+               ogImage=@{/images/products/02-tra-sua-tran-chau-duong-den.jpg}">
+<head th:replace="~{fragments/layout :: head('Trà sữa, trà trái cây pha mới mỗi ly tại Đà Lạt')}"></head>
 <body class="home">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
 <main>
     <div th:replace="~{fragments/layout :: alerts}"></div>
 
-    <!-- ===================== HERO ===================== -->
+    <!-- ===================== 1. HERO ===================== -->
     <section class="hero" id="hero">
         <!-- Hạt trân châu nổi lên phía sau -->
         <div class="pearls" aria-hidden="true">
@@ -32,16 +36,15 @@
                         <span class="line line-leaf">từ Đà Lạt,</span>
                         <span class="line line-berry">pha mới mỗi ly.</span>
                     </h1>
-                    <p class="hero-lead">Trà sữa, trà trái cây và cà phê với dâu tây, khoai môn, Robusta của Lâm Đồng.
-                        Chọn size, mức đường, đá và topping theo đúng khẩu vị của bạn.</p>
+                    <p class="hero-lead">Trà sữa, trà trái cây và cà phê từ dâu tây, khoai môn Đà Lạt và cà phê Lâm Đồng – chọn size, đường, đá, topping đúng khẩu vị của bạn.</p>
                     <div class="hero-cta d-flex flex-wrap gap-2 mt-4">
-                        <a href="#menu" class="btn btn-ts"><i class="bi bi-cup-straw"></i> Xem menu &amp; đặt món</a>
+                        <a href="#menu" class="btn btn-ts"><i class="bi bi-cup-straw" aria-hidden="true"></i> Xem menu &amp; đặt món</a>
                         <a href="#signature" class="btn btn-peach">Món signature</a>
                     </div>
                     <div class="hero-facts">
-                        <span><i class="bi bi-geo-alt-fill"></i> Phường 8, Đà Lạt</span>
-                        <span><i class="bi bi-clock-fill"></i> 7:00 – 22:00</span>
-                        <span><i class="bi bi-qr-code"></i> Quét QR Vietcombank / MoMo</span>
+                        <span><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Phường 8, Đà Lạt</span>
+                        <span><i class="bi bi-clock-fill" aria-hidden="true"></i> 7:00 – 22:00</span>
+                        <span><i class="bi bi-qr-code" aria-hidden="true"></i> Quét QR Vietcombank / MoMo</span>
                     </div>
                     <p class="small text-muted mt-3 mb-0" sec:authorize="hasAnyRole('STAFF','ADMIN')">
                         <i class="bi bi-shop"></i> Chế độ bán tại quầy: thêm món vào đơn rồi mở "Đơn tại quầy" để thanh toán.
@@ -53,7 +56,7 @@
                         <!-- Mỗi lớp .plx dịch chuyển theo chuột với độ sâu khác nhau (parallax) -->
                         <div class="plx" data-depth="8">
                             <div class="hero-cup main" th:if="${heroCups.size() > 0}">
-                                <img th:src="${heroCups[0].imageUrl}" alt="">
+                                <img th:src="${heroCups[0].imageUrl}" alt="" fetchpriority="high">
                             </div>
                         </div>
                         <div class="plx" data-depth="22">
@@ -83,7 +86,70 @@
         </div>
     </div>
 
-    <!-- ===================== SIGNATURE ===================== -->
+    <!-- ===================== 2. VÌ SAO CHỌN QUÁN ===================== -->
+    <section class="section why-section" id="gioi-thieu" aria-labelledby="gioi-thieu-title">
+        <div class="container">
+            <div class="reveal">
+                <h2 class="section-title" id="gioi-thieu-title">Vì sao chọn Trà Sữa Thôi?</h2>
+                <p class="section-sub">Bốn điều quán giữ ở mọi ly, từ nguyên liệu tới lúc bạn thanh toán.</p>
+            </div>
+            <div class="why-grid mt-4">
+                <article class="why-card reveal">
+                    <span class="why-icon tone-leaf" aria-hidden="true"><i class="bi bi-flower1"></i></span>
+                    <h3>Nguyên liệu Đà Lạt</h3>
+                    <p>Dâu tây tươi và khoai môn Đà Lạt, cà phê Robusta &amp; Arabica Lâm Đồng.</p>
+                </article>
+                <article class="why-card reveal reveal-delay-1">
+                    <span class="why-icon tone-peach" aria-hidden="true"><i class="bi bi-sliders"></i></span>
+                    <h3>Tuỳ chỉnh từng ly</h3>
+                    <p>Size M, L hoặc size riêng của từng món, đường và đá từ 0% đến 100%, tối đa 5 phần topping (mỗi loại đến x3).</p>
+                </article>
+                <article class="why-card reveal reveal-delay-2">
+                    <span class="why-icon tone-berry" aria-hidden="true"><i class="bi bi-cup-hot"></i></span>
+                    <h3>Pha mới mỗi ly</h3>
+                    <p>Quán xác nhận đơn rồi mới pha, bạn thấy đơn chuyển sang “Đang pha chế”.</p>
+                </article>
+                <article class="why-card reveal reveal-delay-3">
+                    <span class="why-icon tone-taro" aria-hidden="true"><i class="bi bi-qr-code-scan"></i></span>
+                    <h3>Tiền mặt hoặc QR</h3>
+                    <p>Trả tiền mặt, hoặc quét QR Vietcombank / MoMo ngay trên trang đơn hàng.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== 3. ĐẶT MÓN TRONG 3 BƯỚC ===================== -->
+    <section class="section steps-section" id="cach-dat" aria-labelledby="cach-dat-title">
+        <div class="container">
+            <div class="reveal">
+                <h2 class="section-title" id="cach-dat-title">Đặt món trong 3 bước</h2>
+                <p class="section-sub">Từ menu đến ly nước trên tay – mỗi bước dùng một mẫu thiết kế của đồ án.</p>
+            </div>
+            <div class="steps mt-4">
+                <div class="step reveal">
+                    <div class="num">1</div>
+                    <h3>Chọn món</h3>
+                    <p>Lướt menu theo danh mục; đã đăng nhập thì thêm nhanh theo công thức có sẵn: mặc định, ít ngọt, đặc biệt.</p>
+                    <span class="tag">Builder · Director</span>
+                </div>
+                <div class="step reveal reveal-delay-1">
+                    <div class="num">2</div>
+                    <h3>Tuỳ chỉnh và xem giá từng lớp</h3>
+                    <p>Chọn size, đường, đá, topping (thêm 2–3 phần trân châu cũng được) – giá cộng theo từng lớp và hiện ngay bên cạnh.</p>
+                    <span class="tag">Decorator</span>
+                </div>
+                <div class="step reveal reveal-delay-2">
+                    <div class="num">3</div>
+                    <h3>Thanh toán và theo dõi đơn</h3>
+                    <p>Áp mã giảm giá, trả tiền mặt hoặc quét QR, rồi theo dõi đơn trong mục “Đơn của tôi”.</p>
+                    <span class="tag">Strategy</span>
+                </div>
+            </div>
+            <a href="#menu" class="btn btn-ts btn-round px-4 mt-4"><i class="bi bi-cup-straw" aria-hidden="true"></i> Bắt đầu chọn món</a>
+        </div>
+    </section>
+
+    <!-- ===================== 4a. SIGNATURE ===================== -->
     <section class="section signature-section" id="signature" th:unless="${#lists.isEmpty(signatures)}">
         <div class="container">
             <div class="reveal">
@@ -95,7 +161,7 @@
                 <!-- Món signature lớn -->
                 <a th:with="p=${signatures[0]}" th:href="@{/products/{id}(id=${p.id})}"
                    class="sig-card big reveal" th:classappend="'tone-' + ${p.tone}">
-                    <div class="sig-photo"><img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}"></div>
+                    <div class="sig-photo"><img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}" loading="lazy" decoding="async"></div>
                     <div class="sig-body">
                         <span class="sig-badge"><i class="bi bi-stars"></i> Signature</span>
                         <div class="sig-name" th:text="${p.name}">Tên món</div>
@@ -132,14 +198,14 @@
                                 <span class="sig-go"><i class="bi bi-arrow-right"></i></span>
                             </div>
                         </div>
-                        <div class="sig-photo"><img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}"></div>
+                        <div class="sig-photo"><img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}" loading="lazy" decoding="async"></div>
                     </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ===================== MENU ===================== -->
+    <!-- ===================== 4b. MENU THEO DANH MỤC ===================== -->
     <section class="section menu-section" id="menu">
         <div class="container">
             <div class="reveal">
@@ -176,7 +242,7 @@
                              th:style="'view-transition-name: card-' + ${p.id}">
                         <a th:href="@{/products/{id}(id=${p.id})}" class="drink-thumb text-decoration-none"
                            th:classappend="${p.imageUrl} ? 'photo-frame'">
-                            <img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}"
+                            <img th:if="${p.imageUrl}" th:src="${p.imageUrl}" th:alt="${p.name}" loading="lazy" decoding="async"
                                  th:style="'view-transition-name: drink-' + ${p.id}">
                             <span th:unless="${p.imageUrl}">🧋</span>
                             <span class="chip-cat" th:text="${p.category.name}">Trà sữa</span>
@@ -208,7 +274,7 @@
                                         <i class="bi bi-plus-lg"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><h6 class="dropdown-header">Thêm nhanh vào giỏ</h6></li>
+                                        <li><span class="dropdown-header">Thêm nhanh vào giỏ</span></li>
                                         <li th:each="r : ${ {'default','less-sweet','special'} }">
                                             <form th:action="@{/cart/quick-add}" method="post">
                                                 <input type="hidden" name="productId" th:value="${p.id}">
@@ -231,42 +297,12 @@
         </div>
     </section>
 
-    <!-- ===================== ĐẶT LY THEO Ý BẠN (3 bước) ===================== -->
-    <section class="section steps-section">
+    <!-- ===================== 5. KHÁCH NÓI GÌ (đánh giá thật từ ReviewService.highlightReviews) ===================== -->
+    <section class="section reviews-section" id="danh-gia" aria-labelledby="danh-gia-title" th:unless="${#lists.isEmpty(highlightReviews)}">
         <div class="container">
             <div class="reveal">
-                <h2 class="section-title">Đặt ly theo ý bạn</h2>
-                <p class="section-sub">Ba bước từ menu đến ly nước trên tay.</p>
-            </div>
-            <div class="steps mt-4">
-                <div class="step reveal">
-                    <div class="num">1</div>
-                    <h3>Chọn món</h3>
-                    <p>Lướt menu hoặc thêm nhanh theo công thức có sẵn: mặc định, ít ngọt, đặc biệt.</p>
-                    <span class="tag">Builder · Director</span>
-                </div>
-                <div class="step reveal reveal-delay-1">
-                    <div class="num">2</div>
-                    <h3>Chỉnh theo khẩu vị</h3>
-                    <p>Size M/L, đường, đá, tối đa 5 topping – giá cộng dồn hiện ngay bên cạnh.</p>
-                    <span class="tag">Decorator</span>
-                </div>
-                <div class="step reveal reveal-delay-2">
-                    <div class="num">3</div>
-                    <h3>Nhập mã &amp; thanh toán</h3>
-                    <p>Áp mã giảm giá, trả tiền mặt hoặc quét QR Vietcombank / MoMo.</p>
-                    <span class="tag">Strategy</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===================== KHÁCH NÓI GÌ ===================== -->
-    <section class="section reviews-section" th:unless="${#lists.isEmpty(highlightReviews)}">
-        <div class="container">
-            <div class="reveal">
-                <h2 class="section-title">Khách nói gì</h2>
-                <p class="section-sub">Nhận xét mới nhất từ khách đã mua.</p>
+                <h2 class="section-title" id="danh-gia-title">Khách nói gì</h2>
+                <p class="section-sub">Ba nhận xét 4–5 sao mới nhất, lấy trực tiếp từ đánh giá của khách trên web.</p>
             </div>
             <div class="row g-4 mt-1">
                 <div class="col-md-4" th:each="r, st : ${highlightReviews}">
@@ -284,27 +320,140 @@
         </div>
     </section>
 
-    <!-- ===================== GHÉ QUÁN ===================== -->
-    <section class="section pb-0">
+    <!-- ===================== 6. HỎI NHANH TRỢ LÝ ===================== -->
+    <!-- Ẩn sẵn. static/js/landing.js chỉ hiện khối này khi trang đã có chatbox, tức là có nút id="chatbox-toggle"
+         (fragments/chatbox.html theo SPEC 4.1); bấm "Hỏi trợ lý" = bấm nút đó. Chưa có chatbox thì khối vẫn ẩn, không lỗi. -->
+    <section class="section ask-section" id="hoi-tro-ly" aria-labelledby="hoi-tro-ly-title" data-chatbox-cta hidden>
         <div class="container">
-            <div class="visit reveal">
+            <div class="ask-card reveal">
                 <div>
-                    <h2>Ghé quán hoặc đặt giao tận nơi</h2>
-                    <p class="muted mb-0 mt-2">Đặt online, quán xác nhận và pha ngay. Giao trong bán kính 5 km.</p>
+                    <h2 class="ask-title" id="hoi-tro-ly-title">Chưa biết chọn món nào?</h2>
+                    <p class="mb-0">Hỏi nhanh trợ lý: món ít ngọt, món đậm trà, món dưới 30.000đ…</p>
                 </div>
+                <button type="button" class="btn btn-ts btn-round px-4" data-chatbox-open>
+                    <i class="bi bi-chat-dots" aria-hidden="true"></i> Hỏi trợ lý
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== 7. CÂU HỎI THƯỜNG GẶP ===================== -->
+    <section class="section faq-section" id="faq" aria-labelledby="faq-title">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 reveal">
+                    <h2 class="section-title" id="faq-title">Câu hỏi thường gặp</h2>
+                    <p class="section-sub">Chưa thấy câu trả lời? Xem cách liên hệ quán ở <a href="#lien-he">cuối trang</a>.</p>
+                </div>
+                <div class="col-lg-8 reveal reveal-delay-1">
+                    <div class="accordion faq" id="faqList">
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq-dat-mon"
+                                        aria-expanded="true" aria-controls="faq-dat-mon">Đặt món online như thế nào?</button>
+                            </h3>
+                            <div id="faq-dat-mon" class="accordion-collapse collapse show" data-bs-parent="#faqList">
+                                <div class="accordion-body">
+                                    Đăng nhập (chưa có tài khoản thì <a th:href="@{/register}">đăng ký</a>), bấm vào món trong <a href="#menu">Menu</a>,
+                                    chọn size, đường, đá, topping rồi bấm <strong>Thêm vào giỏ</strong>. Mở Giỏ hàng, chọn <strong>Mang đi</strong>
+                                    hoặc <strong>Giao hàng</strong>, chọn cách thanh toán và bấm <strong>Đặt hàng</strong>.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-thanh-toan"
+                                        aria-expanded="false" aria-controls="faq-thanh-toan">Quán nhận thanh toán bằng cách nào?</button>
+                            </h3>
+                            <div id="faq-thanh-toan" class="accordion-collapse collapse" data-bs-parent="#faqList">
+                                <div class="accordion-body">
+                                    Tiền mặt, chuyển khoản Vietcombank hoặc ví MoMo. Chọn chuyển khoản hay MoMo thì trang chi tiết đơn hiện mã QR
+                                    kèm số tiền, nội dung chuyển khoản là mã đơn; quán xác nhận khi đã nhận tiền. Mã khuyến mãi nhập ở Giỏ hàng.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-huy-don"
+                                        aria-expanded="false" aria-controls="faq-huy-don">Tôi có huỷ đơn được không?</button>
+                            </h3>
+                            <div id="faq-huy-don" class="accordion-collapse collapse" data-bs-parent="#faqList">
+                                <div class="accordion-body">
+                                    Được, khi đơn còn ở trạng thái <strong>Chờ xác nhận</strong>: vào <strong>Đơn của tôi</strong>, mở đơn và bấm
+                                    <strong>Huỷ đơn</strong>. Khi quán đã xác nhận, bạn không tự huỷ được nữa – vui lòng gọi <a th:href="'tel:' + ${shopPhone}" th:text="${shopPhone}">0333647940</a>.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-tai-khoan"
+                                        aria-expanded="false" aria-controls="faq-tai-khoan">Có cần tài khoản không, đăng ký thế nào?</button>
+                            </h3>
+                            <div id="faq-tai-khoan" class="accordion-collapse collapse" data-bs-parent="#faqList">
+                                <div class="accordion-body">
+                                    Xem menu và giá không cần tài khoản; muốn thêm vào giỏ và đặt món thì cần đăng nhập. Bấm
+                                    <a th:href="@{/register}">Đăng ký</a>, điền tên đăng nhập, họ tên và mật khẩu (ít nhất 5 ký tự).
+                                    Số điện thoại, email, địa chỉ có thể bổ sung sau trong Hồ sơ – lần đặt sau được điền sẵn.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-giao-hang"
+                                        aria-expanded="false" aria-controls="faq-giao-hang">Quán có giao hàng không?</button>
+                            </h3>
+                            <div id="faq-giao-hang" class="accordion-collapse collapse" data-bs-parent="#faqList">
+                                <div class="accordion-body">
+                                    Có, trong bán kính 5 km quanh quán. Khi đặt hàng, chọn <strong>Giao hàng</strong> và nhập địa chỉ nhận.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== 8. GIỜ MỞ CỬA, ĐỊA CHỈ, LIÊN HỆ (cùng thông tin với footer) ===================== -->
+    <section class="section contact-section" id="lien-he" aria-labelledby="lien-he-title">
+        <div class="container">
+            <div class="visit contact-card reveal">
                 <div>
-                    <div><i class="bi bi-geo-alt-fill"></i> 01 Phù Đổng Thiên Vương</div>
-                    <div class="muted">Phường 8, Đà Lạt</div>
-                    <div class="mt-2"><i class="bi bi-clock-fill"></i> 7:00 – 22:00 mỗi ngày</div>
-                </div>
-                <div class="text-lg-end">
+                    <h2 id="lien-he-title">Ghé quán hoặc đặt giao tận nơi</h2>
+                    <p class="muted mt-2 mb-3">Đặt online, quán xác nhận rồi pha ngay. Giao trong bán kính 5 km.</p>
                     <a href="#menu" class="btn btn-peach btn-lg btn-round px-4">Đặt món ngay</a>
+                </div>
+                <div>
+                    <h3 class="contact-head">Địa chỉ &amp; giờ mở cửa</h3>
+                    <p class="mb-2"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> 01 Phù Đổng Thiên Vương<br>
+                        <span class="muted contact-indent">Phường 8, Đà Lạt</span></p>
+                    <p class="mb-2"><i class="bi bi-clock-fill" aria-hidden="true"></i> 7:00 – 22:00 mỗi ngày</p>
+                    <p class="mb-0"><i class="bi bi-map" aria-hidden="true"></i>
+                        <a class="contact-link" target="_blank" rel="noopener"
+                           th:href="@{https://www.google.com/maps/search/(api=1,query='01 Phù Đổng Thiên Vương, Phường 8, Đà Lạt')}">Chỉ đường trên Google Maps</a></p>
+                </div>
+                <div>
+                    <h3 class="contact-head">Liên hệ</h3>
+                    <!-- Số điện thoại / email lấy từ app.shop.phone / app.shop.email (GlobalModelAdvice), giống footer -->
+                    <p class="mb-2"><i class="bi bi-telephone-fill" aria-hidden="true"></i> Điện thoại:
+                        <a class="contact-link" th:href="'tel:' + ${shopPhone}" th:text="${shopPhone}">0333647940</a></p>
+                    <p class="mb-2"><i class="bi bi-envelope-fill" aria-hidden="true"></i> Email:
+                        <a class="contact-link text-break" th:href="'mailto:' + ${shopEmail}" th:text="${shopEmail}">2314283@dlu.edu.vn</a></p>
+                    <p class="mb-2"><i class="bi bi-chat-heart-fill" aria-hidden="true"></i>
+                        <a class="contact-link" th:href="@{/feedback}">Góp ý món để quán cải thiện</a></p>
+                    <p class="mb-0"><i class="bi bi-truck" aria-hidden="true"></i> Giao hàng trong bán kính 5 km</p>
                 </div>
             </div>
         </div>
     </section>
 </main>
 
+<!-- Nút "Đặt món ngay" cố định trên điện thoại (landing.js ẩn khi đang ở hero hoặc đang xem menu) -->
+<a href="#menu" class="btn btn-peach landing-fab" data-landing-fab>
+    <i class="bi bi-cup-straw" aria-hidden="true"></i> Đặt món ngay
+</a>
+
 <div th:replace="~{fragments/layout :: footer}"></div>
+<script th:src="@{/js/landing.js}"></script>
 </body>
 </html>

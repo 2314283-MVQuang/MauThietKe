@@ -18,6 +18,9 @@ app.properties.new
 database/trasua_db_dump.sql
 database/xuat_db.log
 *.tar
+
+# Chrome profile dung de chup anh
+docs/screenshots/_profile*/
 cai_dat_vscode.log
 database/lam_moi_cham_cong.log
 push.log
