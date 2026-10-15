@@ -30,13 +30,15 @@ if errorlevel 1 (
 )
 
 git add -A
-git commit -m "Cap nhat: cham cong & luong, quan ly KH/NV, xu ly don theo ngay & chot ket, QR thanh toan, con/het mon, topping x2, gop y, size tuy chinh, top ban chay theo ngay/tuan/thang"
+rem Noi dung commit: lay tu file noi_dung_commit.txt neu co, khong thi dung cau mac dinh
+if exist noi_dung_commit.txt (git commit -F noi_dung_commit.txt) else (git commit -m "Cap nhat du an quan tra sua")
 git branch -M main
 git remote get-url origin >nul 2>&1 || git remote add origin https://github.com/2314283-MVQuang/MauThietKe.git
 echo.
 echo === Dang day len GitHub (lan dau se hien cua so dang nhap GitHub) ===
 git push -u origin main > push.log 2>&1
 set PUSH_ERR=%errorlevel%
+if "%PUSH_ERR%"=="0" if exist noi_dung_commit.txt del noi_dung_commit.txt
 type push.log
 if not "%PUSH_ERR%"=="0" (
   echo.
