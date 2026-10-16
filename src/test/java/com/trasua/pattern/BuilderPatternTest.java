@@ -11,6 +11,7 @@ import com.trasua.entity.Product;
 import com.trasua.entity.Role;
 import com.trasua.entity.Topping;
 import com.trasua.entity.User;
+import com.trasua.pattern.builder.DrinkBuilder;
 import com.trasua.pattern.builder.DrinkDirector;
 import com.trasua.pattern.builder.OrderBuilder;
 import com.trasua.pattern.builder.OrderItemBuilder;
@@ -62,10 +63,11 @@ class BuilderPatternTest {
 
     @Test
     void directorTaoLyTheoCongThuc() {
-        DrinkDirector director = new DrinkDirector();
-        OrderItem lessSweet = director.makeLessSweet(traSua);
+        // Director giữ một Builder (qua interface DrinkBuilder); mỗi Director dựng 1 ly
+        DrinkBuilder builder = OrderItemBuilder.forProduct(traSua);
+        OrderItem lessSweet = new DrinkDirector(builder).makeLessSweet();
         assertEquals(30, lessSweet.getSugarLevel());
-        OrderItem special = director.makeSpecial(traSua, List.of(tranChau));
+        OrderItem special = new DrinkDirector(OrderItemBuilder.forProduct(traSua)).makeSpecial(List.of(tranChau));
         assertEquals("L", special.getSize());
         assertEquals(0, BigDecimal.valueOf(37000).compareTo(special.getUnitPrice()));
     }

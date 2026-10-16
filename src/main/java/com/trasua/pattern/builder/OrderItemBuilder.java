@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * ============================================================================
- *  BUILDER PATTERN - CONCRETE BUILDER #1: dựng một ly nước (OrderItem)
+ *  BUILDER PATTERN - vai trò: CONCRETE BUILDER (cài đặt interface DrinkBuilder)
  * ============================================================================
  * Một ly nước có nhiều tuỳ chọn: size, mức đường, mức đá, nhiều topping,
  * số lượng, ghi chú. Phần lớn là TUỲ CHỌN và có giá trị mặc định.
@@ -38,11 +38,18 @@ import java.util.stream.Collectors;
  *         .build();
  * -> đọc như câu văn, chỉ gọi bước nào cần, kiểm tra hợp lệ tập trung ở build().
  *
+ * Vai trò trong mẫu:
+ *   - implements DrinkBuilder  -> cài đặt chi tiết từng bước đã khai báo ở Builder;
+ *   - giữ các "phần" của ly đang dựng (size, sugar, ice, toppings...);
+ *   - build() (= getResult()) trả về sản phẩm hoàn chỉnh OrderItem.
+ * Các hàm trả về OrderItemBuilder (kiểu con của DrinkBuilder - "covariant return")
+ * nên vẫn gọi nối được cả những bước riêng như addTopping(t, 2), toppings(list).
+ *
  * KẾT HỢP VỚI DECORATOR: trong build(), builder ráp chuỗi Decorator
  *   BaseBeverage -> SizeDecorator -> ToppingDecorator... -> SugarIceDecorator
  * để tính đơn giá và mô tả ly nước.
  */
-public class OrderItemBuilder {
+public class OrderItemBuilder implements DrinkBuilder {
 
     /** Các mức đường / đá cho phép (%). */
     public static final List<Integer> LEVELS = List.of(0, 30, 50, 70, 100);
@@ -72,27 +79,32 @@ public class OrderItemBuilder {
 
     // ------------------- CÁC BƯỚC DỰNG (trả về this để gọi nối) -------------------
 
+    @Override
     public OrderItemBuilder size(DrinkSize size) {
         this.size = size == null ? "M" : size.name();
         return this;
     }
 
     /** Chọn size theo mã (kể cả size quản lý tự thêm, VD "XL"). */
+    @Override
     public OrderItemBuilder size(String sizeCode) {
         this.size = sizeCode == null || sizeCode.isBlank() ? "M" : sizeCode.trim().toUpperCase();
         return this;
     }
 
+    @Override
     public OrderItemBuilder sugar(int percent) {
         this.sugar = percent;
         return this;
     }
 
+    @Override
     public OrderItemBuilder ice(int percent) {
         this.ice = percent;
         return this;
     }
 
+    @Override
     public OrderItemBuilder addTopping(Topping topping) {
         if (topping != null) {
             this.toppings.add(topping);
@@ -115,11 +127,13 @@ public class OrderItemBuilder {
         return this;
     }
 
+    @Override
     public OrderItemBuilder quantity(int quantity) {
         this.quantity = quantity;
         return this;
     }
 
+    @Override
     public OrderItemBuilder note(String note) {
         this.note = (note == null || note.isBlank()) ? null : note.trim();
         return this;
@@ -152,7 +166,8 @@ public class OrderItemBuilder {
         return beverage;
     }
 
-    /** Tạo OrderItem hoàn chỉnh, đã hợp lệ. */
+    /** getResult(): tạo OrderItem hoàn chỉnh, đã hợp lệ. */
+    @Override
     public OrderItem build() {
         Beverage beverage = buildBeverage(); // đã validate bên trong
 
