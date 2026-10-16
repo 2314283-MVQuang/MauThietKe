@@ -1,6 +1,5 @@
 package com.trasua.config;
 
-import com.trasua.pattern.builder.DrinkDirector;
 import com.trasua.pattern.strategy.payment.BankTransferPaymentStrategy;
 import com.trasua.pattern.strategy.payment.CashPaymentStrategy;
 import com.trasua.pattern.strategy.payment.MomoPaymentStrategy;
@@ -53,11 +52,5 @@ public class PatternConfig {
     @Bean
     public PaymentProcessor paymentProcessor(List<PaymentStrategy> strategies) {
         return new PaymentProcessor(strategies);
-    }
-
-    /** BUILDER - Director chứa các công thức pha chế chuẩn. */
-    @Bean
-    public DrinkDirector drinkDirector() {
-        return new DrinkDirector();
     }
 }

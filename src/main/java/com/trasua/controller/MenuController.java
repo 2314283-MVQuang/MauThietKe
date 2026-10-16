@@ -26,17 +26,15 @@ import java.util.List;
 public class MenuController {
 
     private final CatalogService catalogService;
-    private final DrinkDirector drinkDirector;
     private final Cart cart;
     private final ReviewService reviewService;
     private final UserService userService;
 
-    public MenuController(CatalogService catalogService, DrinkDirector drinkDirector, Cart cart,
+    public MenuController(CatalogService catalogService, Cart cart,
                           ReviewService reviewService, UserService userService) {
         this.reviewService = reviewService;
         this.userService = userService;
         this.catalogService = catalogService;
-        this.drinkDirector = drinkDirector;
         this.cart = cart;
     }
 
@@ -149,7 +147,8 @@ public class MenuController {
 
     /**
      * "Thêm nhanh" theo công thức có sẵn.
-     * BUILDER - DIRECTOR: Director biết các bước dựng ly theo công thức chuẩn.
+     * BUILDER - DIRECTOR: Director giữ một Builder (DrinkBuilder) và gọi các bước
+     * theo công thức chuẩn. Mỗi ly tạo một Director mới với Builder cho đúng món.
      */
     @PostMapping("/cart/quick-add")
     public String quickAdd(@RequestParam("productId") Long productId,
@@ -157,10 +156,11 @@ public class MenuController {
                            RedirectAttributes ra) {
         try {
             Product product = catalogService.getProduct(productId);
+            DrinkDirector director = new DrinkDirector(OrderItemBuilder.forProduct(product));
             OrderItem item = switch (recipe) {
-                case "less-sweet" -> drinkDirector.makeLessSweet(product);
-                case "special" -> drinkDirector.makeSpecial(product, catalogService.availableToppings());
-                default -> drinkDirector.makeDefault(product);
+                case "less-sweet" -> director.makeLessSweet();
+                case "special" -> director.makeSpecial(catalogService.availableToppings());
+                default -> director.makeDefault();
             };
             cart.add(item);
             ra.addFlashAttribute("success", "Đã thêm nhanh: " + item.getDescription());
